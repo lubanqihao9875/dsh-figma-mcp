@@ -1,0 +1,63 @@
+{
+  "name": "dsh-figma-mcp",
+  "version": "0.1.0",
+  "description": "DSH 的 Figma MCP 一键连接插件",
+  "keywords": [
+    "dsh",
+    "figma",
+    "mcp",
+    "dsh-plugin",
+    "oauth"
+  ],
+  "author": {
+    "name": "lubanqihao9875",
+    "url": "https://github.com/lubanqihao9875"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lubanqihao9875/dsh-figma-mcp.git"
+  },
+  "homepage": "https://github.com/lubanqihao9875/dsh-figma-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/lubanqihao9875/dsh-figma-mcp/issues"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client.js",
+    "cordis.patch.yml",
+    "assets",
+    "README.md",
+    "README.en.md",
+    "LICENSE",
+    "screenshots.json"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "verify": "node -e \"JSON.parse(require('fs').readFileSync('package.json','utf8'))\""
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "engines": {
+      "dsh": ">=0.1.2-rc.1"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  }
+}
