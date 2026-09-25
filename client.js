@@ -300,8 +300,7 @@ window.__ModuleLoader__.load({
       const [error, setError] = useState('')
       const [pending, setPending] = useState(false) // 用户点了连接，host 在等回调；不渲染任何"等待"UI
       const [confirmDisconnect, setConfirmDisconnect] = useState(false)
-      const [expanded, setExpanded] = useState(false) // 默认折叠；首次拿到 connected 状态时自动展开
-      const userExpandedRef = useRef(false) // 用户手动 toggle 后，跟随用户意图
+      const [expanded, setExpanded] = useState(false) // 默认折叠，仅由用户点击切换
       const mountedRef = useRef(true)
       const pollTimerRef = useRef(null)
 
@@ -326,16 +325,6 @@ window.__ModuleLoader__.load({
           if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
         }
       }, [fetchStatus])
-
-      // 拿到状态后：用户未手动 toggle 过，且有 token 信息（connected/expiring/expired），自动展开
-      useEffect(() => {
-        if (userExpandedRef.current) return
-        if (status === null) return
-        const k = classifyStatus(status)
-        if (k === 'connected' || k === 'expiring' || k === 'expired') {
-          setExpanded(true)
-        }
-      }, [status])
 
       // pending 期间 silent polling；卡片不显示任何"等待"提示
       useEffect(() => {
@@ -499,7 +488,7 @@ window.__ModuleLoader__.load({
             jsx('button', {
               type: 'button',
               className: 'setHeader',
-              onClick: () => { userExpandedRef.current = true; setExpanded((v) => !v) },
+              onClick: () => { setExpanded((v) => !v) },
               'aria-expanded': expanded,
               children: [
                 jsxs('div', { className: 'setHeadText', children: [
