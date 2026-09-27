@@ -1,6 +1,6 @@
 {
   "name": "dsh-figma-mcp",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "DSH 的 Figma MCP 一键连接插件",
   "keywords": [
     "dsh",
@@ -34,9 +34,12 @@
     "lib",
     "client.js",
     "cordis.patch.yml",
+    "skills",
     "assets",
     "README.md",
     "README.en.md",
+    "CHANGELOG.md",
+    "CHANGELOG.en.md",
     "LICENSE",
     "screenshots.json"
   ],

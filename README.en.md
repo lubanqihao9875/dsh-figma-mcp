@@ -70,6 +70,9 @@ After connecting, paste a Figma link directly into a DSH chat and tell the
 agent what you want. The agent automatically calls the `mcp__figma__*` tools
 to read content and run the task.
 
+This plugin bundles an Agent skill (`dsh-figma-mcp-skill`) that automatically
+tells DSH how to pick the right Figma MCP tools — no extra setup required.
+
 ### Read design content
 
 > Show me what's in this design file: your Figma file URL (e.g. `https://www.figma.com/design/<file-id>`)

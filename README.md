@@ -82,6 +82,8 @@ token 有效期以 Figma 下发为准，临近过期卡片会变黄提醒。「�
 
 连接成功后，在 DSH 对话里直接把 Figma 链接贴进 prompt，告诉 Agent 你想做什么，Agent 会自动调用 `mcp__figma__*` 工具读取内容并执行任务。
 
+插件内置 Agent skill（`dsh-figma-mcp-skill`），自动告诉 DSH 如何正确选用 Figma MCP 工具，不需要额外操作。
+
 ### 阅读设计稿内容
 
 > 帮我看这个设计稿里有什么内容：你的 Figma 文件链接（如 `https://www.figma.com/design/<文件ID>`）
