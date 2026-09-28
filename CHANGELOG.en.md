@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- Added: "Load built-in skill" toggle.
+
 ## 0.2.0
 
 - Added: built-in Agent skill (`dsh-figma-mcp-skill`).

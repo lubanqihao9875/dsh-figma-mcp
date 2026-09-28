@@ -1,5 +1,9 @@
 # 更新日志
 
+## 0.3.0
+
+- 新增：「加载本插件内置 Skill」开关。
+
 ## 0.2.0
 
 - 新增：内置 Agent skill（`dsh-figma-mcp-skill`）。

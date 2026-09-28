@@ -18,6 +18,29 @@ DSH ≥ 0.1.2-rc.1 (web profile) and a Figma account.
 
 ## Install
 
+### From npm
+
+```bash
+dsh plugin --profile web add dsh-figma-mcp
+```
+
+### From GitHub
+
+```bash
+dsh plugin --profile web add github:lubanqihao9875/dsh-figma-mcp
+```
+
+### Local development
+
+Clone the repo and enter the directory first:
+
+```bash
+git clone https://github.com/lubanqihao9875/dsh-figma-mcp.git
+cd dsh-figma-mcp
+```
+
+Then link the current directory into the web profile:
+
 ```bash
 # macOS / Linux
 dsh plugin --profile web add link:$(pwd)
@@ -70,8 +93,7 @@ After connecting, paste a Figma link directly into a DSH chat and tell the
 agent what you want. The agent automatically calls the `mcp__figma__*` tools
 to read content and run the task.
 
-This plugin bundles an Agent skill (`dsh-figma-mcp-skill`) that automatically
-tells DSH how to pick the right Figma MCP tools — no extra setup required.
+This plugin bundles an Agent skill (`dsh-figma-mcp-skill`) that tells DSH how to pick the Figma MCP tools. It can be disabled from the "Settings → Plugins → Figma" card.
 
 ### Read design content
 

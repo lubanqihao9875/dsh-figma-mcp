@@ -1,12 +1,11 @@
 ---
 name: dsh-figma-mcp-skill
-description: 在 DSH 对话中，当用户粘贴了 Figma 链接或要求 Agent 读取、修改、写入 Figma 文件时，加载本 skill。
+description: 在 DSH 对话中，当用户粘贴 Figma 链接或要求 Agent 读取、修改、写入 Figma 文件时，加载本 skill。
 ---
 
 # dsh-figma-mcp-skill
 
-本 skill 面向的是"已经连上 Figma 之后"，Agent 拿到 `mcp__figma__*` 工具时如何正确选用、如何与用户配合。
-OAuth / token 展示 / 设置卡片由 dsh-figma-mcp 插件本体负责，不在本 skill 范围。
+本 skill 面向的是"已经连上 Figma 之后"，Agent 拿到 `mcp__figma__*` 工具如何选用，OAuth / token 展示 / 设置卡片由 dsh-figma-mcp 插件本体负责，不在本 skill 范围。
 
 ## 1. 拿到任务后的前 3 步
 

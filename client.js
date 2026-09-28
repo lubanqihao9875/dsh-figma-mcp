@@ -43,6 +43,11 @@ window.__ModuleLoader__.load({
       'modal.disconnect.title': '断开 Figma',
       'modal.disconnect.desc': '已连接的 Figma 会立即失效',
 
+      'row.skill.label': '加载本插件内置 Skill',
+      'row.skill.hint': 'DSH 启动时加载本插件内置 Skill 到工具列表',
+      'skill.switch.on': '加载本插件内置 Skill（已启用）',
+      'skill.switch.off': '加载本插件内置 Skill（已停用）',
+
       'error.refresh': '刷新失败：{message}',
 
       'time.todayExpire': '今天 {time} 过期',
@@ -82,6 +87,11 @@ window.__ModuleLoader__.load({
 
       'modal.disconnect.title': 'Disconnect Figma',
       'modal.disconnect.desc': 'The active Figma connection will be invalidated immediately',
+
+      'row.skill.label': 'Load this plugin\'s built-in skill',
+      'row.skill.hint': 'On DSH startup, loads this plugin\'s built-in skill into the tool list',
+      'skill.switch.on': 'Load this plugin\'s built-in skill (enabled)',
+      'skill.switch.off': 'Load this plugin\'s built-in skill (disabled)',
 
       'error.refresh': 'Refresh failed: {message}',
 
@@ -193,6 +203,17 @@ window.__ModuleLoader__.load({
       // danger button：危险操作按钮（outline 改色）
       '.dangerBtn.dangerBtn{color:var(--dsw-alias-state-error-primary);border-color:var(--dsw-alias-state-error-primary)}',
       '.dangerBtn.dangerBtn:hover:not(:disabled){background:var(--dsw-alias-state-error-primary);color:#fff;border-color:var(--dsw-alias-state-error-primary)}',
+
+      // switch：自绘 pill，role="switch"，用于「插件自带 Skill」行
+      '.switch{appearance:none;-webkit-appearance:none;box-sizing:border-box;background:var(--dsw-alias-border-l3);cursor:pointer;border:0;border-radius:10px;flex:none;width:36px;height:20px;padding:2px;position:relative;color:inherit;font:inherit;}',
+      '.switchOn{background:var(--dsw-alias-brand-primary)}',
+      '.switch:disabled{cursor:default;opacity:.5}',
+      '.switch:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}',
+      '.switchThumb{corner-shape:round;background:var(--dsw-alias-label-primary-foreground);border-radius:50%;width:16px;height:16px;transition:transform .12s;display:block}',
+      '.switchOn .switchThumb{transform:translate(16px)}',
+
+      // skill icon
+      '.skillIcon{color:var(--dsw-alias-label-tertiary);flex:none;display:inline-flex;align-items:center;justify-content:center}',
     ].join('\n')
 
     let styleInjected = false
@@ -251,7 +272,32 @@ window.__ModuleLoader__.load({
 
     /* ============================================================ Card */
 
-    function CopyButton({ value }) {
+    /* ============================================================ Switch */
+
+  function Switch({ checked, disabled, onToggle, labelOn, labelOff }) {
+    const onKeyDown = (e) => {
+      if (disabled) return
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault()
+        onToggle()
+      }
+    }
+    return jsx('button', {
+      type: 'button',
+      role: 'switch',
+      'aria-checked': checked,
+      'aria-label': checked ? labelOn : labelOff,
+      disabled,
+      className: 'switch' + (checked ? ' switchOn' : ''),
+      onClick: () => { if (!disabled) onToggle() },
+      onKeyDown,
+      children: jsx('span', { className: 'switchThumb' }),
+    })
+  }
+
+  /* ============================================================ CopyButton */
+
+  function CopyButton({ value }) {
       const [phase, setPhase] = useState('idle') // idle | copied | fading
       const timerRef = useRef(null)
       useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
@@ -296,11 +342,16 @@ window.__ModuleLoader__.load({
 
     function FigmaCard(props) {
       props = props || {}
+      const settingsScope = props.settingsScope || null
       const [status, setStatus] = useState(null) // {connected, accessTokenFull, expiresAt} | null
       const [error, setError] = useState('')
       const [pending, setPending] = useState(false) // 用户点了连接，host 在等回调；不渲染任何"等待"UI
       const [confirmDisconnect, setConfirmDisconnect] = useState(false)
       const [expanded, setExpanded] = useState(false) // 默认折叠，仅由用户点击切换
+
+      const [skillEnabled, setSkillEnabled] = useState(true)
+      const [skillInitial, setSkillInitial] = useState(false)
+      const [skillSaving, setSkillSaving] = useState(false)
       const mountedRef = useRef(true)
       const pollTimerRef = useRef(null)
 
@@ -325,6 +376,39 @@ window.__ModuleLoader__.load({
           if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
         }
       }, [fetchStatus])
+
+      useEffect(() => {
+        if (settingsScope === null) {
+          setSkillInitial(true)
+          return undefined
+        }
+        const snap = settingsScope.getSnapshot()
+        if (snap && snap.status === 'ready' && snap.value !== undefined) {
+          const v = snap.value.skillEnabled
+          setSkillEnabled(v !== false) // 缺省 true
+          setSkillInitial(true)
+        }
+        const off = settingsScope.subscribe(() => {
+          if (!mountedRef.current) return
+          const s = settingsScope.getSnapshot()
+          if (s && s.status === 'ready' && s.value !== undefined) {
+            const v = s.value.skillEnabled
+            setSkillEnabled(v !== false)
+          }
+        })
+        return () => { try { off() } catch { /* 卸载时静默 */ } }
+      }, [settingsScope])
+
+      const toggleSkill = useCallback(async () => {
+        if (settingsScope === null || skillSaving) return
+        const next = !skillEnabled
+        setSkillSaving(true)
+        try {
+          await settingsScope.set('skillEnabled', next)
+        } catch { /* 写失败 */ } finally {
+          if (mountedRef.current) setSkillSaving(false)
+        }
+      }, [settingsScope, skillEnabled, skillSaving])
 
       // pending 期间 silent polling；卡片不显示任何"等待"提示
       useEffect(() => {
@@ -455,6 +539,17 @@ window.__ModuleLoader__.load({
             ? jsx('span', { children: expiresText })
             : jsx('span', { className: 'muted', children: '—' }),
         ),
+        skillInitial
+          ? row(t('row.skill.label'), t('row.skill.hint'),
+              jsx(Switch, {
+                checked: skillEnabled,
+                disabled: skillSaving,
+                onToggle: toggleSkill,
+                labelOn: t('skill.switch.on'),
+                labelOff: t('skill.switch.off'),
+              }),
+            )
+          : null,
       ] })
 
       const actions = (() => {
@@ -522,7 +617,7 @@ window.__ModuleLoader__.load({
       })
     }
 
-    exports.inject = ['slots', 'locale']
+    exports.inject = ['slots', 'locale', 'settingsScope']
     exports.apply = (ctx) => {
       try { wireLocale(ctx) } catch { /* 保持 fallback */ }
       try {
@@ -531,6 +626,14 @@ window.__ModuleLoader__.load({
           window.__DSH_LOCALE__ = locale
         }
       } catch { /* 保持 fallback */ }
+      let figmaScope = null
+      try {
+        const factory = ctx && (ctx.settingsScope || (ctx.get && ctx.get('settingsScope')))
+        if (factory !== undefined && factory !== null && typeof factory.bind === 'function') {
+          figmaScope = factory.bind({ namespace: 'figma-mcp' })
+        }
+      } catch { /* 保持 fallback */ }
+
       ctx.slots.inject('settings.plugin.item', () =>
         ctx.slots.register(
           {
@@ -539,7 +642,7 @@ window.__ModuleLoader__.load({
             locale: 'figma-mcp',
             inject: () => ({}),
           },
-          () => React.createElement(FigmaCard),
+          () => React.createElement(FigmaCard, { settingsScope: figmaScope }),
         ),
       )
     }
