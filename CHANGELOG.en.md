@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Improved: user interface and interactions.
+
 ## 0.3.0
 
 - Added: "Load built-in skill" toggle.

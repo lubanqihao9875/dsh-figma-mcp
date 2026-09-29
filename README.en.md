@@ -10,24 +10,22 @@
 
 [中文](./README.md)
 
-One-click Figma MCP connector for DSH (DeepSeek Harness).
+## Overview
 
-## Prerequisites
-
-DSH ≥ 0.1.2-rc.1 (web profile) and a Figma account.
+The one-click Figma MCP connector for DSH, paste a Figma link into chat, and the Agent can read/write nodes, layers, variables, and styles, generate React/Vue code, secure OAuth login, token stored locally, auto-reminded before expiry, with a built-in Skill to guide the way.
 
 ## Install
 
 ### From npm
 
 ```bash
-dsh plugin --profile web add dsh-figma-mcp
+dsh plugin add dsh-figma-mcp
 ```
 
 ### From GitHub
 
 ```bash
-dsh plugin --profile web add github:lubanqihao9875/dsh-figma-mcp
+dsh plugin add github:lubanqihao9875/dsh-figma-mcp
 ```
 
 ### Local development
@@ -39,61 +37,48 @@ git clone https://github.com/lubanqihao9875/dsh-figma-mcp.git
 cd dsh-figma-mcp
 ```
 
-Then link the current directory into the web profile:
+Then link the current directory into DSH:
 
 ```bash
 # macOS / Linux
-dsh plugin --profile web add link:$(pwd)
+dsh plugin add link:$(pwd)
 
 # Windows (PowerShell)
-dsh plugin --profile web add link:"$PWD"
+dsh plugin add link:"$PWD"
 ```
 
-Restart DSH. The "Settings → Plugins → Figma" card appears — click
-"Connect Figma" to complete the authorization.
+After installing, restart DSH. The "Settings → DSH Figma MCP" card appears — click "Connect Figma" to complete the authorization.
 
-## Card states
+## Card
 
-Disconnected:
+The card has two sections: "Connection" (authorization state) and "Skill" (whether the Figma MCP usage is injected into the Agent skill list)
 
-![Disconnected](assets/disconnected.png)
+### Connection
 
-Connected:
-
-![Connected](assets/connected.png)
-
-| State | Meaning | Action |
+| Status chip | Meaning | Action |
 |---|---|---|
-| Not connected | Not yet authorized | Click "Connect Figma" |
-| Connected (green) | Token is valid | Nothing to do |
-| Expiring soon (yellow) | Less than 24h left | Suggested: click "Refresh auth" |
-| Expired (red) | Token is no longer valid | Click "Reauthorize" (opens browser) |
+| Not connected | Not yet authorized | Click "Connect Figma" to open the browser |
+| Connected | Token is valid | Nothing to do |
+| Expiring soon | Less than 24h left | Suggested: click "Refresh auth" |
+| Expired | Token is no longer valid | Click "Reauthorize" |
 
-The Token row shows a masked token. The "⧉ Copy" button next to it copies the
-full token so you can configure it manually in another MCP client
-(`Authorization: Bearer <token>`) — it is equivalent to your Figma account
-credential, so don't share it with others.
+After authorization the card switches from "Not connected" to "Connected" automatically.
+
+### Skill
+
+The "Skill" toggle controls whether `dsh-figma-mcp-skill` is injected into the Agent's skill list. `dsh-figma-mcp-skill` tells DSH how to pick the `mcp__figma__*` tools. It is on by default.
 
 ## Expiry and refresh
 
-Token lifetime follows what Figma issues. As the token approaches expiry, the
-card turns yellow. "Refresh auth" silently renews the token in the background
-without opening a browser. Only when the token is completely invalid do you
-need "Reauthorize", which restarts the browser flow.
+The token lifetime follows what Figma issues. As the token approaches expiry, the status chip turns yellow ("Expiring soon"). "Refresh auth" silently renews the token in the background without opening a browser; only when it is completely invalid do you need "Reauthorize" to go through the browser flow again.
 
 ## Disconnect and uninstall
 
-"Disconnect" only cleans up locally: the token and refresh credentials inside
-the patch file are removed immediately. Disconnect before uninstalling the
-plugin, otherwise the patch file will still hold a valid token.
+"Disconnect" only clears local data: the token and refresh credentials in the patch file are deleted immediately. Click Disconnect before uninstalling the plugin, otherwise a still-valid token will remain in the patch file.
 
 ## Usage examples
 
-After connecting, paste a Figma link directly into a DSH chat and tell the
-agent what you want. The agent automatically calls the `mcp__figma__*` tools
-to read content and run the task.
-
-This plugin bundles an Agent skill (`dsh-figma-mcp-skill`) that tells DSH how to pick the Figma MCP tools. It can be disabled from the "Settings → Plugins → Figma" card.
+After connecting, paste a Figma link directly into a DSH chat and tell the Agent what you want. The Agent automatically calls the `mcp__figma__*` tools to read content and run the task.
 
 ### Read design content
 
@@ -101,25 +86,16 @@ This plugin bundles an Agent skill (`dsh-figma-mcp-skill`) that tells DSH how to
 
 ### Extract copy and build an i18n table
 
-> Pull every button and heading label from the Figma file above and produce a Chinese/English i18n table.
+> Pull every button and heading label from the Figma file above and produce a Chinese/English i18n table
 
 ### Generate code from the design
 
-> Convert the Figma page above into React code.
-
-A real call in action:
-
-![Figma tool call in chat](assets/chat.png)
+> Convert the Figma page above into React code
 
 ## Security
 
-- The token is stored in plaintext inside the local patch file
-  (`headers.Authorization: Bearer figu_...` — streamable-http transports do
-  not support expression evaluation). The file is written atomically with
-  `0o600` permissions. Do not share the patch file, the full token, or
-  related screenshots.
+- The token is stored in `$DSH_HOME/figma-mcp/config.json`, written atomically with `0o600` permissions. Do not share the config file, the token, or related screenshots.
 
 ## Troubleshooting
 
-- "Connect Figma" does not open a browser: check whether a popup blocker
-  stopped the OAuth window.
+- Clicking "Connect Figma" does not open a browser: check whether a popup blocker stopped the OAuth window.

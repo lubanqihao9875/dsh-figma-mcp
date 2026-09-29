@@ -13,7 +13,7 @@ description: 在 DSH 对话中，当用户粘贴 Figma 链接或要求 Agent 读
 
 1. **解析链接**：从用户给的链接或描述中提取 `fileKey` 和 `nodeId`（参考 `references/flow-ids.md`）。
    若用户未提供链接但提及"我的 Figma 里有个组件…"等表述，先向用户索取链接。
-2. **确认 token 状态**：写操作前应确认 token 仍有有效时长。引导用户前往 `设置 → 插件 → Figma`
+2. **确认 token 状态**：写操作前应确认 token 仍有有效时长。引导用户前往 `设置 → DSH Figma MCP`
    查看卡片状态（参考 `references/auth-state.md`）。未连接或已过期时，暂停写操作。
 3. **先读后写**：写操作前先用 `mcp__figma__get_metadata` 或 `mcp__figma__get_design_context`
    了解目标文件的结构，再决定是否调用 `use_figma`。

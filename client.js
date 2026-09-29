@@ -7,27 +7,21 @@ window.__ModuleLoader__.load({
     const exports = {}
     const React = require('react')
     const { jsx, jsxs, Fragment } = require('react/jsx-runtime')
-    const { useState, useEffect, useCallback, useRef } = React
-    const UI = require('@deepseek-ai/dsh-client-ui-primitives')
-    const Modal = UI.Modal
-    const Button = UI.Button
+    const { useState, useEffect, useCallback, useRef, useMemo } = React
 
     /* ============================================================ i18n */
 
     const zh = {
-      'card.name': 'DSH Figma MCP',
-      'card.desc': '授权一次可让 DSH 直接读写你的 Figma 设计文件、查询资源、读取样式。',
-      'card.copy': '⧉ 复制',
-      'card.copy.title': '复制完整 token',
-      'card.copied': '已复制',
-
+      'section.heading': 'DSH Figma MCP',
+      'section.description': '授权一次可让 DSH 直接读写你的 Figma 设计文件、查询资源、读取样式。',
+      'section.label': 'DSH Figma MCP',
+      'connection.title': '连接',
+      'skill.title': 'Skill',
+      
       'row.status.label': '授权状态',
-      'row.status.hint': 'Figma授权连接状态',
-      'row.token.label': 'Token',
-      'row.token.hint': '访问令牌',
       'row.expires.label': '过期时间',
-      'row.expires.hint': '访问令牌失效时间',
-
+      'row.skill.label': '加载本插件内置 Skill',
+      
       'state.loading': '加载中',
       'state.connected': '已连接',
       'state.expiring': '即将过期',
@@ -37,18 +31,16 @@ window.__ModuleLoader__.load({
       'btn.connect': '连接 Figma',
       'btn.reauth': '重新授权',
       'btn.disconnect': '断开',
+      'btn.disconnect.confirm': '确认断开',
       'btn.refresh': '刷新授权',
       'btn.cancel': '取消',
 
       'modal.disconnect.title': '断开 Figma',
       'modal.disconnect.desc': '已连接的 Figma 会立即失效',
 
-      'row.skill.label': '加载本插件内置 Skill',
-      'row.skill.hint': 'DSH 启动时加载本插件内置 Skill 到工具列表',
-      'skill.switch.on': '加载本插件内置 Skill（已启用）',
-      'skill.switch.off': '加载本插件内置 Skill（已停用）',
-
       'error.refresh': '刷新失败：{message}',
+      'error.network': '网络错误,请检查连接',
+      'toast.refreshed': 'Token 已更新',
 
       'time.todayExpire': '今天 {time} 过期',
       'time.inMinutes': '{n} 分钟后过期',
@@ -60,19 +52,16 @@ window.__ModuleLoader__.load({
     }
 
     const en = {
-      'card.name': 'DSH Figma MCP',
-      'card.desc': 'Authorize once so DSH can read and write your Figma files, query assets, and read styles.',
-      'card.copy': '⧉ Copy',
-      'card.copy.title': 'Copy full token',
-      'card.copied': 'Copied',
-
+      'section.heading': 'DSH Figma MCP',
+      'section.description': 'Authorize once so DSH can read and write your Figma files, query assets, and read styles.',
+      'section.label': 'Figma',
+      'connection.title': 'Connection',
+      'skill.title': 'Skill',
+      
       'row.status.label': 'Authorization',
-      'row.status.hint': 'Status of Figma connection',
-      'row.token.label': 'Token',
-      'row.token.hint': 'Access token',
       'row.expires.label': 'Expires',
-      'row.expires.hint': 'When access token becomes invalid',
-
+      'row.skill.label': 'Load this plugin\'s built-in skill',
+      
       'state.loading': 'Loading',
       'state.connected': 'Connected',
       'state.expiring': 'Expiring soon',
@@ -82,18 +71,16 @@ window.__ModuleLoader__.load({
       'btn.connect': 'Connect Figma',
       'btn.reauth': 'Reauthorize',
       'btn.disconnect': 'Disconnect',
+      'btn.disconnect.confirm': 'Confirm disconnect',
       'btn.refresh': 'Refresh auth',
       'btn.cancel': 'Cancel',
 
       'modal.disconnect.title': 'Disconnect Figma',
       'modal.disconnect.desc': 'The active Figma connection will be invalidated immediately',
 
-      'row.skill.label': 'Load this plugin\'s built-in skill',
-      'row.skill.hint': 'On DSH startup, loads this plugin\'s built-in skill into the tool list',
-      'skill.switch.on': 'Load this plugin\'s built-in skill (enabled)',
-      'skill.switch.off': 'Load this plugin\'s built-in skill (disabled)',
-
       'error.refresh': 'Refresh failed: {message}',
+      'error.network': 'Network error, please check your connection',
+      'toast.refreshed': 'Token updated',
 
       'time.todayExpire': 'today at {time}',
       'time.inMinutes': 'expires in {n} minutes',
@@ -138,11 +125,13 @@ window.__ModuleLoader__.load({
         const locale = ctx && (ctx.locale || (ctx.get && ctx.get('locale')))
         if (locale === undefined || locale === null) return
         if (typeof locale.register === 'function') {
-          // 注册到 dsh-figma-mcp namespace；return 的 dispose 留给 host 的 ctx.effect
           try { locale.register('dsh-figma-mcp', { zh, en }) } catch { /* 已注册过 */ }
         }
         if (typeof locale.bind === 'function') {
           setRuntimeTranslate(locale.bind('dsh-figma-mcp'))
+        }
+        if (typeof locale.subscribe === 'function' && typeof window !== 'undefined') {
+          window.__DSH_LOCALE__ = locale
         }
       } catch {
         /* locale 服务不可用，保持 fallback */
@@ -152,68 +141,96 @@ window.__ModuleLoader__.load({
     /* ============================================================ CSS */
 
     const CSS = [
-      // 卡片外壳
-      '.setCard{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-3);border-radius:12px;list-style:none;transition:border-color .16s,background .16s}',
-      '.setCard:hover{border-color:var(--dsw-alias-label-dimmed)}',
-      '.setCardOpen{background:var(--dsw-alias-bg-layer-2);border-color:var(--dsw-alias-label-dimmed)}',
+      // ===== page shell =====
+      '.setPage{box-sizing:border-box;max-width:720px;margin:0 auto;padding:0}',
+      '.pageHeading{margin:0 0 6px;font-size:18px;line-height:26px;font-weight:600;color:var(--dsw-alias-label-primary)}',
+      '.pageIntro{margin:0 0 28px;max-width:66ch;font-size:14px;line-height:22px;color:var(--dsw-alias-label-secondary)}',
 
-      // header：全宽可点击按钮
-      '.setHeader{appearance:none;width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer;background:0 0;border:0;border-radius:12px;align-items:center;gap:12px;padding:14px 16px;display:flex}',
-      '.setHeader:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:-2px}',
+      // ===== section card =====
+      '.setSection{display:flex;flex-direction:column;gap:14px;padding:18px 20px 16px;margin:0 0 16px;border-radius:var(--dsw-radius-md);background:var(--dsw-alias-bg-layer-2);border:1px solid var(--dsw-alias-border-l1)}',
+      '.setSection:last-child{margin-bottom:0}',
+      '.setSectionTitle{margin:0;font-size:14px;line-height:22px;font-weight:600;color:var(--dsw-alias-label-primary);letter-spacing:.1px}',
 
-      // header 内部：名称 + 描述
-      '.setHeadText{flex-direction:column;flex:1;gap:4px;min-width:0;display:flex}',
-      '.setName{color:var(--dsw-alias-label-primary);font-size:15px;font-weight:600;line-height:1.4}',
-      '.setDesc{color:var(--dsw-alias-label-tertiary);font-size:13px;line-height:1.5}',
-
-      // chevron：右侧展开箭头，展开时旋转 180°
-      '.setChevron{color:var(--dsw-alias-label-tertiary);flex:none;display:inline-flex;transition:transform .16s;align-items:center;justify-content:center}',
-      '.setChevronOpen{transform:rotate(180deg)}',
-
-      // body：内容区
-      '.setBody{border-top:1px solid var(--dsw-alias-border-l2);margin:0 16px;padding-bottom:8px}',
-
-      // row：行布局，行间用 border-top 分隔
-      '.setRow{display:flex;align-items:center;gap:12px;padding:12px 0}',
-      '.setRow + .setRow{border-top:1px solid var(--dsw-alias-border-l2)}',
+      // ===== row =====
+      '.setRow{display:flex;align-items:center;gap:14px;padding:14px 0}',
+      '.setRow + .setRow{border-top:0.5px solid var(--dsw-alias-border-l1)}',
       '.setLabelBox{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}',
-      '.setLabel{font-size:13px;line-height:20px;color:var(--dsw-alias-label-primary)}',
-      '.setHint{font-size:12px;line-height:18px;color:var(--dsw-alias-label-tertiary)}',
-      '.setRowAction{flex:none;display:inline-flex;align-items:center;gap:6px;min-width:0}',
+      '.setLabel{font-size:14px;line-height:22px;color:var(--dsw-alias-label-primary)}',
+      '.setRowAction{flex:none;display:inline-flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap;justify-content:flex-end}',
 
-      // value 状态色（连 / 即将过期 / 已过期）—— 只换色，不加粗
+      // ===== status indicator =====
+      '.statusTag{flex:none;display:inline-flex;align-items:center;border-radius:999px;corner-shape:round;padding:2px 10px;font-size:12px;line-height:18px;font-weight:500;white-space:nowrap}',
+      '.statusTagLoading{background:color-mix(in srgb, var(--dsw-alias-label-tertiary) 12%, transparent);color:var(--dsw-alias-label-tertiary);animation:tagPulse 1.4s ease-in-out infinite}',
+      '.statusTagConnected{background:color-mix(in srgb, var(--dsw-alias-state-success-primary) 10%, transparent);color:var(--dsw-alias-state-success-primary)}',
+      '.statusTagExpiring{background:color-mix(in srgb, var(--dsw-alias-state-warn-primary) 12%, transparent);color:var(--dsw-alias-state-warn-primary)}',
+      '.statusTagExpired{background:color-mix(in srgb, var(--dsw-alias-state-error-primary) 10%, transparent);color:var(--dsw-alias-state-error-primary)}',
+      '.statusTagDisconnected{background:var(--dsw-alias-bg-module-platform);color:var(--dsw-alias-label-secondary)}',
+      '@keyframes tagPulse{0%,100%{opacity:.6}50%{opacity:1}}',
+
       '.ok{color:var(--dsw-alias-state-success-primary)}',
       '.warn{color:var(--dsw-alias-state-warn-primary)}',
       '.severityError{color:var(--dsw-alias-state-error-primary)}',
       '.muted{color:var(--dsw-alias-label-tertiary)}',
 
-      // Token —— 单色背景 pill
-      '.token{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;padding:2px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);border:1px solid var(--dsw-alias-border-l1);letter-spacing:.2px}',
-      '.copyBtn{appearance:none;background:transparent;border:1px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:3px;line-height:1.5}',
-      '.copyBtn:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}',
-      '.copied{color:var(--dsw-alias-state-success-primary);font-size:11px;font-weight:600;opacity:1;transition:opacity .4s;margin-left:2px}',
-      '.copied[data-fade]{opacity:0}',
+      // ===== actions =====
+      '.setActions{border-top:0.5px solid var(--dsw-alias-border-l1);justify-content:flex-end;align-items:center;gap:12px;padding:14px 0 4px;display:flex}',
 
-      // actions：操作按钮区，靠右对齐
-      '.setActions{border-top:1px solid var(--dsw-alias-border-l2);justify-content:flex-end;align-items:center;gap:8px;padding:12px 0 4px;display:flex}',
+      // ===== inline error =====
+      '.err{display:flex;align-items:flex-start;gap:8px;padding:10px 14px;margin:0 0 16px;border-radius:var(--dsw-radius-md);background:var(--dsw-alias-state-error-bg-soft,rgba(231,72,72,.10));color:var(--dsw-alias-state-error-primary);font-size:13px;line-height:20px;border:0.5px solid var(--dsw-alias-state-error-primary)}',
+      '.errIcon{flex:none;width:16px;height:16px}',
 
-      // error
-      '.err{color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:18px;margin:8px 0;white-space:pre-wrap;word-break:break-all}',
+      // ===== button =====
+      '.btn{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:var(--dsw-radius-md);cursor:pointer;font:inherit;font-size:14px;line-height:22px;color:var(--dsw-alias-label-primary);background:transparent;padding:0 14px;transition:background .12s,color .12s,border-color .12s;font-weight:500}',
+      '.btnSizeMd{height:36px}',
+      '.btnSizeSm{height:28px;font-size:12px;line-height:18px;padding:0 12px}',
+      '.btn:disabled{cursor:not-allowed;opacity:.4}',
+      '.btn:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary));outline-offset:2px}',
+      '.btnPrimary{background:var(--dsw-alias-button-primary-fill);color:var(--dsw-alias-label-primary-foreground)}',
+      '.btnPrimary:hover:not(:disabled){background:var(--dsw-alias-button-primary-hover)}',
+      '.btnOutline{border:0.5px solid var(--dsw-alias-border-l3);background:transparent}',
+      '.btnOutline:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}',
+      '.btnGhost:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}',
+      '.btnGhost:active:not(:disabled){background:var(--dsw-alias-interactive-bg-active)}',
+      '.btnDanger{color:var(--dsw-alias-state-error-primary);background:var(--dsw-alias-state-error-bg-soft,rgba(231,72,72,.06));border:0.5px solid var(--dsw-alias-state-error-primary)}',
+      '.btnDanger:hover:not(:disabled){background:var(--dsw-alias-state-error-primary);color:var(--dsw-alias-label-primary-foreground);border-color:var(--dsw-alias-state-error-primary)}',
 
-      // danger button：危险操作按钮（outline 改色）
-      '.dangerBtn.dangerBtn{color:var(--dsw-alias-state-error-primary);border-color:var(--dsw-alias-state-error-primary)}',
-      '.dangerBtn.dangerBtn:hover:not(:disabled){background:var(--dsw-alias-state-error-primary);color:#fff;border-color:var(--dsw-alias-state-error-primary)}',
+      // ===== switch =====
+      '.sw{box-sizing:border-box;position:relative;flex:none;width:36px;height:20px;padding:2px;border:0;border-radius:999px;background:var(--dsw-alias-border-l3);cursor:pointer;color:inherit;font:inherit;appearance:none;-webkit-appearance:none;transition:background .15s}',
+      '.swOn{background:var(--dsw-alias-state-business-primary)}',
+      '.sw:disabled{cursor:not-allowed;opacity:.6}',
+      '.sw:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary));outline-offset:2px}',
+      '.swThumb{background:var(--dsw-alias-label-primary-foreground);border-radius:50%;width:16px;height:16px;display:block;box-shadow:0 1px 2px rgba(0,0,0,.18),0 0 0 0.5px rgba(0,0,0,.04);transition:transform .15s cubic-bezier(.4,0,.2,1)}',
+      '.swOn .swThumb{transform:translateX(16px)}',
 
-      // switch：自绘 pill，role="switch"，用于「插件自带 Skill」行
-      '.switch{appearance:none;-webkit-appearance:none;box-sizing:border-box;background:var(--dsw-alias-border-l3);cursor:pointer;border:0;border-radius:10px;flex:none;width:36px;height:20px;padding:2px;position:relative;color:inherit;font:inherit;}',
-      '.switchOn{background:var(--dsw-alias-brand-primary)}',
-      '.switch:disabled{cursor:default;opacity:.5}',
-      '.switch:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px}',
-      '.switchThumb{corner-shape:round;background:var(--dsw-alias-label-primary-foreground);border-radius:50%;width:16px;height:16px;transition:transform .12s;display:block}',
-      '.switchOn .switchThumb{transform:translate(16px)}',
+      // ===== modal =====
+      '@keyframes mDialogIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}',
+      '@keyframes mMaskIn{from{opacity:0}to{opacity:1}}',
+      '.mRoot{pointer-events:auto;position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:max(24px,var(--dsh-frame-top-clearance,24px)) 24px}',
+      '.mMask{position:absolute;inset:0;backdrop-filter:var(--dsw-mask-blur);background:var(--dsw-alias-bg-mask-1);animation:mMaskIn .12s ease-out}',
+      '.mDialog{position:relative;z-index:1;display:flex;flex-direction:column;gap:18px;width:380px;max-width:calc(100vw - 48px);padding:0 0 24px;overflow:hidden;border:0;border-radius:var(--dsw-radius-panel);background:var(--dsw-alias-bg-layer-2);box-shadow:var(--dsw-elevation-prominent);animation:mDialogIn .14s cubic-bezier(.4,0,.2,1)}',
+      '.mHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:22px 14px 12px 24px}',
+      '.mTitle{margin:0;font-size:16px;line-height:24px;font-weight:500;color:var(--dsw-alias-label-primary)}',
+      '.mClose{flex:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:none;border-radius:var(--dsw-radius-sm);background:transparent;cursor:pointer;color:var(--dsw-alias-label-secondary);transition:background .12s}',
+      '.mClose:hover{background:var(--dsw-alias-interactive-bg-hover)}',
+      '.mClose:focus-visible{outline:var(--dsw-focus-ring-width,2px) solid var(--dsw-focus-ring-color,var(--dsw-alias-state-business-primary));outline-offset:1px}',
+      '.mBody{display:flex;flex-direction:column;min-width:0;padding:0 24px;font-size:14px;line-height:22px;color:var(--dsw-alias-label-primary)}',
+      '.mFooter{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:0 24px}',
 
-      // skill icon
-      '.skillIcon{color:var(--dsw-alias-label-tertiary);flex:none;display:inline-flex;align-items:center;justify-content:center}',
+      // ===== sr-only =====
+      '.srOnly{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}',
+
+      // ===== shimmer =====
+      '.shimmer{position:relative;display:inline-block;width:80px;height:12px;border-radius:4px;background:var(--dsw-alias-bg-layer-1);overflow:hidden}',
+      '.shimmer::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,var(--dsw-alias-interactive-bg-hover,rgba(0,0,0,.04)) 50%,transparent 100%);animation:shimmerSlide 1.4s linear infinite}',
+      '@keyframes shimmerSlide{from{transform:translateX(-100%)}to{transform:translateX(100%)}}',
+
+      // ===== toast =====
+      '.toast{position:fixed;top:40px;left:50%;z-index:1100;pointer-events:none;display:flex;align-items:center;gap:10px;width:max-content;max-width:min(640px,calc(100vw - 48px));padding:12px 16px;border-radius:var(--dsw-radius-lg);background:var(--dsw-alias-toast-bg);color:var(--dsw-alias-toast-label);font-size:14px;line-height:22px;box-shadow:var(--dsw-shadow-lv3);transform:translateX(-50%);animation:dsh-toast-in 160ms ease-out,dsh-toast-fade 1000ms ease var(--dsh-toast-hold,3000ms) forwards}',
+      '.toastIcon{display:grid;place-items:center;flex:none;color:var(--dsw-alias-state-success-primary)}',
+      '.toastText{min-width:0}',
+      '@keyframes dsh-toast-in{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translate(-50%,0)}}',
+      '@keyframes dsh-toast-fade{to{opacity:0;visibility:hidden}}',
+      '@media (prefers-reduced-motion:reduce){.toast{animation:dsh-toast-fade 1000ms ease var(--dsh-toast-hold,3000ms) forwards}}',
     ].join('\n')
 
     let styleInjected = false
@@ -237,11 +254,6 @@ window.__ModuleLoader__.load({
       if (parsed < now) return 'expired'
       if (parsed - now < 24 * 60 * 60 * 1000) return 'expiring'
       return 'connected'
-    }
-
-    const maskToken = (token) => {
-      if (typeof token !== 'string' || token.length < 8) return token || ''
-      return token.slice(0, 4) + '…' + token.slice(-4)
     }
 
     const fmtRelative = (iso) => {
@@ -270,165 +282,243 @@ window.__ModuleLoader__.load({
         : t('time.agoDays', { n: Math.round(abs / day) })
     }
 
-    /* ============================================================ Card */
+    /* ============================================================ UI primitives */
 
-    /* ============================================================ Switch */
-
-  function Switch({ checked, disabled, onToggle, labelOn, labelOff }) {
-    const onKeyDown = (e) => {
-      if (disabled) return
-      if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault()
-        onToggle()
-      }
+    function Button({ variant, danger, size, className, children, ...rest }) {
+      const sizeCls = size === 'sm' ? ' btnSizeSm' : ' btnSizeMd'
+      const cls = 'btn'
+        + sizeCls
+        + (variant === 'primary' ? ' btnPrimary' : '')
+        + (variant === 'outline' ? ' btnOutline' : '')
+        + (variant === 'ghost' ? ' btnGhost' : '')
+        + (danger ? ' btnDanger' : '')
+        + (className ? ' ' + className : '')
+      return jsx('button', { type: 'button', className: cls, ...rest, children })
     }
-    return jsx('button', {
-      type: 'button',
-      role: 'switch',
-      'aria-checked': checked,
-      'aria-label': checked ? labelOn : labelOff,
-      disabled,
-      className: 'switch' + (checked ? ' switchOn' : ''),
-      onClick: () => { if (!disabled) onToggle() },
-      onKeyDown,
-      children: jsx('span', { className: 'switchThumb' }),
-    })
-  }
 
-  /* ============================================================ CopyButton */
-
-  function CopyButton({ value }) {
-      const [phase, setPhase] = useState('idle') // idle | copied | fading
-      const timerRef = useRef(null)
-      useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
-
-      const onClick = async () => {
-        try {
-          if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(value)
-          } else {
-            const ta = document.createElement('textarea')
-            ta.value = value
-            ta.style.position = 'fixed'
-            ta.style.left = '-9999px'
-            document.body.appendChild(ta)
-            ta.select()
-            document.execCommand('copy')
-            document.body.removeChild(ta)
-          }
-          setPhase('copied')
-          if (timerRef.current) clearTimeout(timerRef.current)
-          timerRef.current = setTimeout(() => setPhase('fading'), 1100)
-          timerRef.current = setTimeout(() => setPhase('idle'), 1600)
-        } catch {
-          /* 复制失败静默 */
+    function Switch({ checked, disabled, onToggle, ariaLabel }) {
+      const onKeyDown = (e) => {
+        if (disabled) return
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault()
+          onToggle()
         }
       }
-
-      return jsxs(Fragment, {
+      return jsx('button', {
+        type: 'button',
+        role: 'switch',
+        'aria-checked': checked ? 'true' : 'false',
+        'aria-label': ariaLabel,
+        disabled,
+        className: 'sw' + (checked ? ' swOn' : ''),
+        onClick: () => { if (!disabled) onToggle() },
+        onKeyDown,
         children: [
-          jsx('button', {
-            className: 'copyBtn',
-            onClick,
-            title: t('card.copy.title'),
-            children: t('card.copy'),
-          }),
-          phase !== 'idle'
-            ? jsx('span', { className: 'copied', 'data-fade': phase === 'fading' ? 'true' : null, children: t('card.copied') })
-            : null,
+          jsx('span', { className: 'swThumb', key: 't' }),
+          jsx('span', { className: 'srOnly', key: 'sr', children: checked ? t('state.connected') : t('state.disconnected') }),
         ],
       })
     }
 
+    function Modal({ open, onClose, title, description, footer }) {
+      const dialogRef = useRef(null)
+      const lastFocusRef = useRef(null)
+
+      useEffect(() => {
+        if (!open) return
+        lastFocusRef.current = document.activeElement
+        const onKey = (e) => {
+          if (e.key === 'Escape') { e.preventDefault(); onClose(); return }
+          if (e.key === 'Tab' && dialogRef.current) {
+            const focusables = dialogRef.current.querySelectorAll(
+              'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )
+            if (focusables.length === 0) return
+            const first = focusables[0]
+            const last = focusables[focusables.length - 1]
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+          }
+        }
+        window.addEventListener('keydown', onKey)
+        const t = setTimeout(() => {
+          if (dialogRef.current) {
+            const f = dialogRef.current.querySelector('button:not([disabled])')
+            if (f) f.focus()
+          }
+        }, 30)
+        return () => {
+          window.removeEventListener('keydown', onKey)
+          clearTimeout(t)
+          if (lastFocusRef.current && typeof lastFocusRef.current.focus === 'function') {
+            try { lastFocusRef.current.focus() } catch { /* ignore */ }
+          }
+        }
+      }, [open, onClose])
+
+      if (!open) return null
+      return jsx('div', {
+        className: 'mRoot',
+        onClick: (e) => { if (e.target === e.currentTarget) onClose() },
+        children: jsxs(Fragment, {
+          children: [
+            jsx('div', { className: 'mMask', onClick: onClose }),
+            jsxs('div', {
+              ref: dialogRef,
+              className: 'mDialog',
+              role: 'dialog',
+              'aria-modal': 'true',
+              'aria-labelledby': 'mTitle-' + (title || '').replace(/\s+/g, '_'),
+              children: [
+                jsxs('div', { className: 'mHeader', children: [
+                  jsx('h3', { id: 'mTitle-' + (title || '').replace(/\s+/g, '_'), className: 'mTitle', children: title }),
+                  jsx('button', {
+                    type: 'button',
+                    className: 'mClose',
+                    onClick: onClose,
+                    'aria-label': t('btn.cancel'),
+                    children: jsx('svg', {
+                      width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none',
+                      xmlns: 'http://www.w3.org/2000/svg',
+                      children: jsx('path', {
+                        d: 'M4 4L12 12M12 4L4 12',
+                        stroke: 'currentColor', 'stroke-width': 1.5, 'stroke-linecap': 'round',
+                      }),
+                    }),
+                  }),
+                ] }),
+                description
+                  ? jsx('div', { className: 'mBody', children: description })
+                  : null,
+                jsx('div', { className: 'mFooter', children: footer }),
+              ],
+            }),
+          ],
+        }),
+      })
+    }
+
+    /* ============================================================ StatusTag */
+
+    function StatusTag({ kind, label }) {
+      const cls = 'statusTag '
+        + (kind === 'loading' ? 'statusTagLoading'
+          : kind === 'connected' ? 'statusTagConnected'
+          : kind === 'expiring' ? 'statusTagExpiring'
+          : kind === 'expired' ? 'statusTagExpired'
+          : 'statusTagDisconnected')
+      return jsx('span', { className: cls, children: label })
+    }
+
+    /* ============================================================ SectionCard */
+
+    function SectionCard({ title, children }) {
+      return jsxs('div', { className: 'setSection', children: [
+        title ? jsx('h4', { className: 'setSectionTitle', children: title }) : null,
+        jsx('div', { children }),
+      ] })
+    }
+
+    /* ============================================================ Row */
+
+    function Row({ label, action, ariaRole, ariaLive }) {
+      const lblBox = jsx('div', { className: 'setLabelBox', children:
+        jsx('div', { className: 'setLabel', children: label }),
+      })
+      return jsxs('div', {
+        className: 'setRow',
+        role: ariaRole || null,
+        ...(ariaLive ? { 'aria-live': ariaLive } : {}),
+        children: [
+          lblBox,
+          action ? jsx('div', { className: 'setRowAction', children: action }) : null,
+        ],
+      })
+    }
+
+    /* ============================================================ FigmaCard */
+
     function FigmaCard(props) {
       props = props || {}
-      const settingsScope = props.settingsScope || null
-      const [status, setStatus] = useState(null) // {connected, accessTokenFull, expiresAt} | null
+      const [status, setStatus] = useState(null)
       const [error, setError] = useState('')
-      const [pending, setPending] = useState(false) // 用户点了连接，host 在等回调；不渲染任何"等待"UI
       const [confirmDisconnect, setConfirmDisconnect] = useState(false)
-      const [expanded, setExpanded] = useState(false) // 默认折叠，仅由用户点击切换
-
       const [skillEnabled, setSkillEnabled] = useState(true)
       const [skillInitial, setSkillInitial] = useState(false)
       const [skillSaving, setSkillSaving] = useState(false)
-      const mountedRef = useRef(true)
-      const pollTimerRef = useRef(null)
+      const [pending, setPending] = useState(false)
 
-      const fetchStatus = useCallback(async () => {
+      const mountedRef = useRef(true)
+      const abortRef = useRef(null)
+
+      const fetchStatus = useCallback(async (signal) => {
         try {
-          const r = await fetch('/api/figma/status', { headers: { accept: 'application/json' } })
+          const r = await fetch('/api/figma/status', {
+            headers: { accept: 'application/json' },
+            signal: signal || null,
+          })
           if (!r.ok) throw new Error('status ' + r.status)
           const j = await r.json()
           if (mountedRef.current) setStatus(j)
           return j
-        } catch {
+        } catch (e) {
+          if (e && e.name === 'AbortError') return null
           return null
         }
       }, [])
 
+      const fetchConfig = useCallback(async (signal) => {
+        try {
+          const r = await fetch('/api/figma/config', {
+            headers: { accept: 'application/json' },
+            signal: signal || null,
+          })
+          if (!r.ok) throw new Error('config ' + r.status)
+          const j = await r.json()
+          if (!mountedRef.current) return null
+          if (j && typeof j.skillEnabled === 'boolean') setSkillEnabled(j.skillEnabled)
+          return j
+        } catch (e) {
+          if (e && e.name === 'AbortError') return null
+          return null
+        } finally {
+          if (mountedRef.current) setSkillInitial(true)
+        }
+      }, [])
+
+      const initialFetch = useCallback(() => {
+        if (abortRef.current) abortRef.current.abort()
+        const ctrl = new AbortController()
+        abortRef.current = ctrl
+        Promise.all([fetchStatus(ctrl.signal), fetchConfig(ctrl.signal)]).catch(() => {})
+      }, [fetchStatus, fetchConfig])
+
       useEffect(() => {
         mountedRef.current = true
         ensureStyle()
-        fetchStatus()
+        initialFetch()
         return () => {
           mountedRef.current = false
-          if (pollTimerRef.current) clearTimeout(pollTimerRef.current)
+          if (abortRef.current) abortRef.current.abort()
         }
-      }, [fetchStatus])
-
-      useEffect(() => {
-        if (settingsScope === null) {
-          setSkillInitial(true)
-          return undefined
-        }
-        const snap = settingsScope.getSnapshot()
-        if (snap && snap.status === 'ready' && snap.value !== undefined) {
-          const v = snap.value.skillEnabled
-          setSkillEnabled(v !== false) // 缺省 true
-          setSkillInitial(true)
-        }
-        const off = settingsScope.subscribe(() => {
-          if (!mountedRef.current) return
-          const s = settingsScope.getSnapshot()
-          if (s && s.status === 'ready' && s.value !== undefined) {
-            const v = s.value.skillEnabled
-            setSkillEnabled(v !== false)
-          }
-        })
-        return () => { try { off() } catch { /* 卸载时静默 */ } }
-      }, [settingsScope])
+      }, [initialFetch])
 
       const toggleSkill = useCallback(async () => {
-        if (settingsScope === null || skillSaving) return
+        if (skillSaving) return
         const next = !skillEnabled
         setSkillSaving(true)
         try {
-          await settingsScope.set('skillEnabled', next)
+          const r = await fetch('/api/figma/config', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', accept: 'application/json' },
+            body: JSON.stringify({ skillEnabled: next }),
+          })
+          const j = await r.json().catch(() => ({}))
+          if (r.ok && j && typeof j.skillEnabled === 'boolean') setSkillEnabled(j.skillEnabled)
         } catch { /* 写失败 */ } finally {
           if (mountedRef.current) setSkillSaving(false)
         }
-      }, [settingsScope, skillEnabled, skillSaving])
-
-      // pending 期间 silent polling；卡片不显示任何"等待"提示
-      useEffect(() => {
-        if (!pending) return
-        let cancelled = false
-        const tick = async () => {
-          while (!cancelled && mountedRef.current) {
-            await new Promise((res) => setTimeout(res, 1500))
-            if (cancelled || !mountedRef.current) return
-            const s = await fetchStatus()
-            if (s && s.connected && Date.parse(s.expiresAt || '') > Date.now()) {
-              setPending(false)
-              setError('')
-              return
-            }
-          }
-        }
-        tick()
-        return () => { cancelled = true }
-      }, [pending, fetchStatus])
+      }, [skillEnabled, skillSaving])
 
       const doLogin = useCallback(async () => {
         setError('')
@@ -459,14 +549,8 @@ window.__ModuleLoader__.load({
         }
       }, [fetchStatus])
 
-      const askDisconnect = useCallback(() => {
-        setConfirmDisconnect(true)
-      }, [])
-
-      const cancelDisconnect = useCallback(() => {
-        setConfirmDisconnect(false)
-      }, [])
-
+      const [justRefreshed, setJustRefreshed] = useState(false)
+      const refreshToastTimerRef = useRef(null)
       const doRefresh = useCallback(async () => {
         if (!status || !status.connected) return
         setError('')
@@ -479,10 +563,38 @@ window.__ModuleLoader__.load({
           const j = await r.json().catch(() => ({}))
           if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status))
           await fetchStatus()
+          setJustRefreshed(true)
+          if (refreshToastTimerRef.current !== null) clearTimeout(refreshToastTimerRef.current)
+          refreshToastTimerRef.current = setTimeout(() => {
+            if (mountedRef.current) setJustRefreshed(false)
+            refreshToastTimerRef.current = null
+          }, 3000)
         } catch (e) {
           setError(t('error.refresh', { message: e instanceof Error ? e.message : String(e) }))
         }
       }, [status, fetchStatus])
+      useEffect(() => () => {
+        if (refreshToastTimerRef.current !== null) clearTimeout(refreshToastTimerRef.current)
+      }, [])
+
+      useEffect(() => {
+        if (!pending) return undefined
+        let cancelled = false
+        const tick = async () => {
+          while (!cancelled && mountedRef.current) {
+            await new Promise((res) => setTimeout(res, 1500))
+            if (cancelled || !mountedRef.current) return
+            const s = await fetchStatus()
+            if (s && s.connected && Date.parse(s.expiresAt || '') > Date.now()) {
+              setPending(false)
+              setError('')
+              return
+            }
+          }
+        }
+        tick()
+        return () => { cancelled = true }
+      }, [pending, fetchStatus])
 
       const [localeVersion, setLocaleVersion] = useState(0)
       useEffect(() => {
@@ -501,115 +613,119 @@ window.__ModuleLoader__.load({
         return t('state.disconnected')
       })()
 
-      const stateClass = kind === 'connected' ? 'ok'
-        : kind === 'expiring' ? 'warn'
-        : kind === 'expired' ? 'severityError'
-        : 'muted'
-
-      const hasToken = status !== null && status.connected === true && typeof status.accessTokenFull === 'string' && status.accessTokenFull.length > 0
-
-      const full = hasToken ? status.accessTokenFull : ''
-      const masked = hasToken ? maskToken(full) : ''
+      const hasToken = status !== null && status.connected === true
       const expiresText = hasToken && status.expiresAt ? fmtRelative(status.expiresAt) : ''
 
-      // setRow：label+hint 在左，action 在右；多行靠 +.setRow border-top 隔开
-      const row = (label, hint, action) =>
-        jsxs('div', { className: 'setRow', children: [
-          jsxs('div', { className: 'setLabelBox', children: [
-            jsx('div', { className: 'setLabel', children: label }),
-            hint ? jsx('div', { className: 'setHint', children: hint }) : null,
-          ] }),
-          action ? jsx('div', { className: 'setRowAction', children: action }) : null,
-        ] })
+      const statusValue = jsx(StatusTag, {
+        kind,
+        label: kind === 'loading' ? '—' : stateLabel,
+      })
 
-      const stateValue = jsx('span', { className: stateClass, children: stateLabel })
+      const expiresValue = !expiresText
+        ? jsx('span', { className: 'muted', children: '—' })
+        : jsxs('span', {
+            className: kind === 'expired' ? 'severityError' : kind === 'expiring' ? 'warn' : '',
+            children: expiresText,
+          })
 
-      const rows = jsxs(Fragment, { children: [
-        row(t('row.status.label'), t('row.status.hint'), stateValue),
-        row(t('row.token.label'), t('row.token.hint'),
-          hasToken
-            ? jsxs(Fragment, { children: [
-                jsx('span', { className: 'token', children: masked }),
-                jsx(CopyButton, { value: full }),
-              ] })
-            : jsx('span', { className: 'muted', children: '—' }),
-        ),
-        row(t('row.expires.label'), t('row.expires.hint'),
-          expiresText
-            ? jsx('span', { children: expiresText })
-            : jsx('span', { className: 'muted', children: '—' }),
-        ),
-        skillInitial
-          ? row(t('row.skill.label'), t('row.skill.hint'),
-              jsx(Switch, {
-                checked: skillEnabled,
-                disabled: skillSaving,
-                onToggle: toggleSkill,
-                labelOn: t('skill.switch.on'),
-                labelOff: t('skill.switch.off'),
-              }),
-            )
-          : null,
-      ] })
-
-      const actions = (() => {
-        if (kind === 'disconnected') {
-          return jsx(Button, { variant: 'primary', onClick: doLogin, children: t('btn.connect') })
+      const connectionActions = (() => {
+        if (kind === 'disconnected' || kind === 'loading') {
+          return jsx(Button, {
+            variant: 'primary',
+            onClick: doLogin,
+            disabled: kind === 'loading',
+            children: t('btn.connect'),
+          })
         }
         if (kind === 'expired') {
           return jsxs(Fragment, { children: [
             jsx(Button, { variant: 'primary', onClick: doLogin, children: t('btn.reauth') }),
-            jsx(Button, { variant: 'outline', onClick: askDisconnect, className: 'dangerBtn', children: t('btn.disconnect') }),
+            jsx(Button, { variant: 'outline', danger: true, onClick: () => setConfirmDisconnect(true), children: t('btn.disconnect') }),
           ] })
         }
-        if (kind === 'connected' || kind === 'expiring') {
-          return jsxs(Fragment, { children: [
-            jsx(Button, {
-              variant: 'ghost',
-              onClick: doRefresh,
-              children: t('btn.refresh'),
-            }),
-            jsx(Button, { variant: 'outline', onClick: askDisconnect, className: 'dangerBtn', children: t('btn.disconnect') }),
-          ] })
-        }
-        return null
+        return jsxs(Fragment, { children: [
+          jsx(Button, {
+            variant: kind === 'expiring' ? 'primary' : 'ghost',
+            onClick: doRefresh,
+            children: t('btn.refresh'),
+          }),
+          jsx(Button, { variant: 'outline', danger: true, onClick: () => setConfirmDisconnect(true), children: t('btn.disconnect') }),
+        ] })
       })()
 
-      const ChevronIcon = UI.IconChevronDownOutline14
+      const connectionSection = jsx(SectionCard, {
+        title: t('connection.title'),
+        children: jsxs(Fragment, { children: [
+          jsx(Row, {
+            label: t('row.status.label'),
+            action: statusValue,
+          }),
+          jsx(Row, {
+            label: t('row.expires.label'),
+            action: expiresValue,
+          }),
+          connectionActions
+            ? jsx('div', { className: 'setActions', children: connectionActions })
+            : null,
+        ] }),
+      })
+
+      const skillSection = skillInitial
+        ? jsx(SectionCard, {
+            title: t('skill.title'),
+            children: jsx(Row, {
+              label: t('row.skill.label'),
+              action: jsx(Switch, {
+                checked: skillEnabled,
+                disabled: skillSaving,
+                onToggle: toggleSkill,
+                ariaLabel: t('row.skill.label'),
+              }),
+            }),
+          })
+        : null
+
+      const errorBlock = error
+        ? jsxs('div', { className: 'err', role: 'alert', children: [
+            jsx('svg', {
+              className: 'errIcon', viewBox: '0 0 16 16', fill: 'none', key: 'i',
+              children: jsx('path', {
+                d: 'M8 1.5L15 14H1L8 1.5zM8 6v4M8 12v.5',
+                stroke: 'currentColor', 'stroke-width': 1.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+              }),
+            }),
+            jsx('span', { key: 't', children: error }),
+          ] })
+        : null
+
+      const toast = justRefreshed
+        ? jsx('div', { className: 'toast', role: 'status', 'aria-live': 'polite', children:
+            t('toast.refreshed'),
+          })
+        : null
 
       return jsxs(Fragment, {
         children: [
-          jsxs('div', { className: 'setCard' + (expanded ? ' setCardOpen' : ''), 'data-locale-version': localeVersion, children: [
-            jsx('button', {
-              type: 'button',
-              className: 'setHeader',
-              onClick: () => { setExpanded((v) => !v) },
-              'aria-expanded': expanded,
-              children: [
-                jsxs('div', { className: 'setHeadText', children: [
-                  jsx('div', { className: 'setName', children: t('card.name') }),
-                  jsx('div', { className: 'setDesc', children: t('card.desc') }),
-                ] }),
-                jsx(ChevronIcon, { size: 14, className: 'setChevron' + (expanded ? ' setChevronOpen' : '') }),
-              ],
-            }),
-            expanded ? jsx('div', { className: 'setBody', children: jsxs(Fragment, { children: [
-              rows,
-              actions ? jsx('div', { className: 'setActions', children: actions }) : null,
-              error ? jsx('div', { className: 'err', children: error }) : null,
-            ] }) }) : null,
+          jsxs('div', { className: 'setPage', 'data-locale-version': localeVersion, children: [
+            jsx('h2', { className: 'pageHeading', children: t('section.heading') }),
+            jsx('p', { className: 'pageIntro', children: t('section.description') }),
+            errorBlock,
+            connectionSection,
+            skillSection,
           ] }),
+          toast,
           jsx(Modal, {
             open: confirmDisconnect,
-            onClose: cancelDisconnect,
+            onClose: () => setConfirmDisconnect(false),
             title: t('modal.disconnect.title'),
             description: t('modal.disconnect.desc'),
             footer: jsxs(Fragment, { children: [
-              jsx(Button, { variant: 'ghost', onClick: cancelDisconnect, children: t('btn.cancel') }),
+              jsx(Button, { variant: 'ghost', onClick: () => setConfirmDisconnect(false), children: t('btn.cancel') }),
               jsx(Button, {
                 variant: 'primary',
+                danger: true,
                 onClick: () => { setConfirmDisconnect(false); doDisconnect() },
-                children: t('btn.disconnect'),
+                children: t('btn.disconnect.confirm'),
               }),
             ] }),
           }),
@@ -617,34 +733,28 @@ window.__ModuleLoader__.load({
       })
     }
 
-    exports.inject = ['slots', 'locale', 'settingsScope']
+    exports.inject = ['slots', 'locale']
     exports.apply = (ctx) => {
       try { wireLocale(ctx) } catch { /* 保持 fallback */ }
-      try {
-        const locale = ctx && (ctx.locale || (ctx.get && ctx.get('locale')))
-        if (locale && typeof locale.subscribe === 'function' && typeof window !== 'undefined') {
-          window.__DSH_LOCALE__ = locale
-        }
-      } catch { /* 保持 fallback */ }
-      let figmaScope = null
-      try {
-        const factory = ctx && (ctx.settingsScope || (ctx.get && ctx.get('settingsScope')))
-        if (factory !== undefined && factory !== null && typeof factory.bind === 'function') {
-          figmaScope = factory.bind({ namespace: 'figma-mcp' })
-        }
-      } catch { /* 保持 fallback */ }
 
-      ctx.slots.inject('settings.plugin.item', () =>
-        ctx.slots.register(
-          {
-            name: 'settings.plugin.item',
-            key: 'figma-mcp',
-            locale: 'figma-mcp',
-            inject: () => ({}),
-          },
-          () => React.createElement(FigmaCard, { settingsScope: figmaScope }),
-        ),
-      )
+      ctx.slots.inject('settings.section', () => {
+        try {
+          const unregister = ctx.slots.register(
+            {
+              name: 'settings.section',
+              id: 'figma-mcp',
+              label: t('section.label'),
+              locale: 'dsh-figma-mcp',
+              order: 100,
+              inject: () => ({}),
+            },
+            () => React.createElement(FigmaCard),
+          )
+          return () => { try { unregister() } catch { /* 卸载时静默 */ } }
+        } catch {
+          return () => {}
+        }
+      })
     }
 
     return exports
