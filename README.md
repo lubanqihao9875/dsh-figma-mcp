@@ -93,10 +93,6 @@ token 有效期以 Figma 下发为准。临近过期状态标签会变成黄色�
 
 > 把上面这个 Figma 页面转成 React 代码
 
-## 安全
-
-- token 存在 `$DSH_HOME/figma-mcp/config.json`，以 `0o600` 权限原子写入，不要分享 config 文件、token 或相关截图。
-
 ## 常见问题
 
 - 点「连接 Figma」浏览器没弹出来：检查是否被弹窗拦截器拦截。

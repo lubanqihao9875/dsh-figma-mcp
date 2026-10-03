@@ -32,10 +32,10 @@
 | `get_metadata` | ✅ | ✅ | ❌ | ❌ | ❌ |
 | `get_design_context` | ✅ | ✅ | ✅（默认 `0:1`） | ❌ | ❌ |
 | `get_variable_defs` / `get_motion_context` / `get_context_for_code_connect` | ✅ | ✅ | ❌ | ❌ | ❌ |
-| `download_assets` | ✅ | ✅ | ❌ | ❌ | ✅ |
-| `get_screenshot` | ✅ | ✅ | ❌ | ❌ | ✅ |
-| `upload_assets` | ✅ | ✅ | ❌ | ❌ | ✅ |
-| `use_figma` | ✅ | ✅ | ❌ | ❌ | ❌ |
+| `download_assets` | ✅ | ✅ | ❌ | ✅ | ✅ |
+| `get_screenshot` | ✅ | ✅ | ❌ | ✅ | ✅ |
+| `upload_assets` | ✅ | ✅ | ❌ | ✅ | ✅ |
+| `use_figma` | ✅ | ✅ | ❌ | ✅ | ✅ |
 | `create_new_file` | ✅ | — | ❌ | ✅ | ✅ |
 | `search_design_system` / `get_libraries` | ✅ | ✅ | ❌ | ❌ | ❌ |
 | `generate_figma_design`（捕获网页） | ✅ | ✅ | ❌ | ❌ | ❌ |
@@ -45,10 +45,10 @@
 | `create_shader` / `update_shader` / `list_file_shaders` / `get_shader` | ✅ | ✅ | ❌ | ❌ | ✅ |
 
 > **以本地 MCP 工具集与 Figma 官方 tools-and-prompts 页面为准**。DSH 通过 `mcp.figma.com/mcp`
-> 接入 Figma 官方 server，harness 可能对其加以过滤或扩展；上表反映的是基于工具签名与 DSH
-> 当前可见性所推断的支持范围，最终支持范围以 Figma 官方文档
+> 接入 Figma 官方 server，harness 可能对其加以过滤或扩展；上表依据 Figma 官方文档
 > （[developers.figma.com/docs/figma-mcp-server/tools-and-prompts](https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts)）
-> 与调用时返回的错误信息为准。Figma 更新 server 时该矩阵可能随之变化。
+> 标注的文件类型支持整理（branch 设计文件视同 design），最终以本地实际可见工具与调用时返回的
+> 错误信息为准。Figma 更新 server 时该矩阵可能随之变化。
 
 ## 谁拥有 plan
 

@@ -34,13 +34,9 @@
 - 未连接 → "Figma 尚未连接，请先前往「设置 → DSH Figma MCP」点击「连接 Figma」，完成授权后即可继续。"
 - 已过期 → "Figma token 已过期，请前往「设置 → DSH Figma MCP」点击「重新授权」（会弹出浏览器），完成后我再继续。"
 - 即将过期 → "token 剩余有效时长不足 24 小时，是否先前往「设置 → DSH Figma MCP」点击「刷新授权」续期？"
-- token 行旁的 ⧉ 复制按钮：可用于取得完整 token 并配置到其它 MCP 客户端
-  （`Authorization: Bearer <token>`）。**该 token 等同于 Figma 账号凭据，不应外传**。
 
 ## 注意事项
 
-- 应在对话中通过 OAuth 后端 API（`/api/figma/login/start` 等）进行 OAuth——OAuth 必须经由用户交互与浏览器完成；
-- 完整 token 不应写入对话历史、commit、输出文件或 README。上述复制按钮用于"导出至其它 MCP 客户端"，
-  **并非供 Agent 留存**。Agent 自身调用 MCP 时，应通过 harness 注入的 `mcp__figma__*` 工具进行，
-  无需查看 token 明文；
+- OAuth 只能由用户在设置卡片中手动发起、在浏览器中完成；Agent 无法代为登录，也不应尝试调用 `/api/figma/login/start` 等宿主端 HTTP 路由；
+- 完整 token 不应写入对话历史、commit、输出文件或 README。Agent 自身调用 MCP 时，应通过 harness 注入的 `mcp__figma__*` 工具进行，无需查看 token 明文；
 - token 失效后，不应通过反复重试绕过——失败时宜暂停操作并引导用户刷新或重新授权。

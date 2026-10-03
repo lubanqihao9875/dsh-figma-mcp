@@ -92,10 +92,6 @@ After connecting, paste a Figma link directly into a DSH chat and tell the Agent
 
 > Convert the Figma page above into React code
 
-## Security
-
-- The token is stored in `$DSH_HOME/figma-mcp/config.json`, written atomically with `0o600` permissions. Do not share the config file, the token, or related screenshots.
-
 ## Troubleshooting
 
 - Clicking "Connect Figma" does not open a browser: check whether a popup blocker stopped the OAuth window.

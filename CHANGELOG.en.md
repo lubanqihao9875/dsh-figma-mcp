@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+
+- Improved: update skill.
+
 ## 0.4.0
 
 - Improved: user interface and interactions.
