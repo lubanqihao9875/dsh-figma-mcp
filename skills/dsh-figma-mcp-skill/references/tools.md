@@ -69,7 +69,7 @@
 
 ## 3. 写入 / 编辑
 
-- `use_figma`：通用写工具，由 host 端执行 JS 以调用 Plugin API。**需先取得 `fileKey`**；
+- `use_figma`：通用写工具，由 host 端操作 JS 以调用 Plugin API。**需先取得 `fileKey`**；
   涉及架构性改动（重排页面结构、批量调整主题）前宜与用户对齐方案。复杂的插件开发任务不在本 skill
   范围内，请使用 `dsh-plugin-development`。
 - `create_new_file`：创建新文件。调用前宜先调用 `whoami` 取得 planKey；用户拥有多个 plan 时应先确认写入目标。

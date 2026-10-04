@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- Added: dsh-figma-mcp built-in workflow commands.
+
 ## 0.5.0
 
 - Improved: update skill.

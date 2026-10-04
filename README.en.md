@@ -12,7 +12,7 @@
 
 ## Overview
 
-The one-click Figma MCP connector for DSH, paste a Figma link into chat, and the Agent can read/write nodes, layers, variables, and styles, generate React/Vue code, secure OAuth login, token stored locally, auto-reminded before expiry, with a built-in Skill to guide the way.
+The one-click Figma MCP connector for DSH, paste a Figma link into chat, and the Agent can read/write nodes, layers, variables, and styles, generate React/Vue code, secure OAuth login, token stored locally, auto-reminded before expiry, with built-in workflow commands and Skill to guide the way.
 
 ## Install
 
@@ -78,7 +78,7 @@ The token lifetime follows what Figma issues. As the token approaches expiry, th
 
 ## Usage examples
 
-After connecting, paste a Figma link directly into a DSH chat and tell the Agent what you want. The Agent automatically calls the `mcp__figma__*` tools to read content and run the task.
+After connecting, paste a Figma link directly into a DSH chat and tell the Agent what you want. The Agent automatically calls the `mcp__figma__*` tools to read content and run the task.You can also start a fixed workflow with `/dsh-figma-mcp <command> [extra context]`. When required information is missing, the Agent asks for it interactively one field at a time and continues automatically after each answer. Actions that write to Figma, download assets, or write local files ask for confirmation first.
 
 ### Read design content
 

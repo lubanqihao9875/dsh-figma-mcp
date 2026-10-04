@@ -12,7 +12,7 @@
 
 ## 简介
 
-DSH 的 Figma MCP 一键连接插件，对话中粘贴链接，Agent 即可读写节点/图层/变量/样式，生成 React/Vue 代码，OAuth 安全登录，Token 本机存储，临近过期自动提醒，内置 Skill 引导使用。
+DSH 的 Figma MCP 一键连接插件，对话中粘贴链接，Agent 即可读写节点/图层/变量/样式，生成 React/Vue 代码，OAuth 安全登录，Token 本机存储，临近过期自动提醒，内置工作流指令和 Skill 引导使用。
 
 ## 安装
 
@@ -79,7 +79,7 @@ token 有效期以 Figma 下发为准。临近过期状态标签会变成黄色�
 
 ## 使用示例
 
-连接成功后，在 DSH 对话里直接把 Figma 链接贴进 prompt，告诉 Agent 你想做什么，Agent 会自动调用 `mcp__figma__*` 工具读取内容并执行任务。
+连接成功后，在 DSH 对话里直接把 Figma 链接贴进 prompt，告诉 Agent 你想做什么，Agent 会自动调用 `mcp__figma__*` 工具读取内容并操作任务。也可以使用 `/dsh-figma-mcp <指令> [补充说明]` 开启固定工作流。缺少必要信息时，Agent 会交互式逐项提问，拿到回答后自动继续。涉及写入 Figma、下载资产或写入本地文件时，会先给出确认再操作。
 
 ### 阅读设计稿内容
 
