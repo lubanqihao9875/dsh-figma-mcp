@@ -23,7 +23,7 @@ description: 在 DSH 对话中，当用户粘贴 Figma 链接（design / board /
 | 任务 | 推荐路径 | 注意事项 |
 |---|---|---|
 | 读取设计稿内容（查看文件构成、提取 i18n 文案、获取节点信息等） | `get_metadata` → `get_design_context` → (可选) `download_assets` | 先通过 `get_design_context` 取得结构，再按需使用 `download_assets` 获取大图 |
-| 将设计稿生成为本地 React / Vue 等代码 | `get_design_context` → 交由代码生成环节解读 → 本地落盘 | `get_design_context` 返回的代码为参考实现，应按用户项目的代码规范与组件体系调整 |
+| 将设计稿生成为本地 React / Vue 等代码 | `get_design_context` → 交由代码生成环节解读 → 本地落盘 | `get_design_context` 返回的代码为参考实现，应按项目的代码调整 |
 | 修改 Figma 上的现有设计 | `search_design_system`（查看是否已有设计系统）→ `use_figma` | 确认库中已有可复用的 component / variable；涉及架构性改动前与用户对齐方案。FigJam / Slides 无设计系统可查，直接用 `use_figma`（支持范围见 `references/flow-ids.md` 矩阵） |
 
 ## 3. 几个常见易错点

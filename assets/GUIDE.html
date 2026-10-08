@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSH Figma MCP 用户手册</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f7f8fa;
+    --bg-code: #1e1e2e;
+    --fg: #1a1a2e;
+    --fg-soft: #5a5a6a;
+    --fg-muted: #8a8a99;
+    --border: #e4e6eb;
+    --accent: #6c5ce7;
+    --accent-soft: #f0eeff;
+    --accent-strong: #5a4bd1;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+    --radius: 8px;
+    --maxw: 880px;
+    --side: 248px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    --font-mono: "SF Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg-soft);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  span[lang="zh"], span[lang="en"] { display: none; }
+  html[lang="zh"] span[lang="zh"] { display: inline; }
+  html[lang="en"] span[lang="en"] { display: inline; }
+  header.top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header.top h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .lang-switch {
+    margin-left: auto;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .lang-opt {
+    cursor: pointer;
+    color: var(--fg-muted);
+    transition: color 0.15s;
+  }
+  .lang-opt:hover { color: var(--accent); }
+  .lang-opt.active { color: var(--accent); cursor: default; }
+  .lang-sep { color: var(--fg-muted); }
+  .layout {
+    display: grid;
+    grid-template-columns: var(--side) minmax(0, 1fr);
+    max-width: calc(var(--side) + var(--maxw) + 80px);
+    margin: 0 auto;
+    gap: 32px;
+    padding: 28px;
+  }
+  nav.toc {
+    position: sticky;
+    top: 64px;
+    align-self: start;
+    max-height: calc(100vh - 88px);
+    overflow-y: auto;
+    padding-right: 8px;
+    font-size: 13.5px;
+  }
+  nav.toc .toc-title {
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 11px;
+    margin: 0 0 10px 4px;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: toc;
+  }
+  nav.toc li {
+    counter-increment: toc;
+    margin: 2px 0;
+  }
+  nav.toc a {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: var(--fg-soft);
+    text-decoration: none;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  nav.toc a::before {
+    content: counter(toc) ". ";
+    color: var(--fg-muted);
+    margin-right: 2px;
+  }
+  nav.toc a:hover {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+  nav.toc a.active {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+  main {
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 36px 44px 56px;
+    min-width: 0;
+  }
+  h1, h2, h3, h4 {
+    color: var(--fg);
+    line-height: 1.35;
+    scroll-margin-top: 80px;
+  }
+  main h1 { font-size: 26px; margin: 0 0 8px; }
+  main > .lead {
+    color: var(--fg-soft);
+    margin: 0 0 24px;
+    font-size: 14.5px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  h2 {
+    font-size: 21px;
+    margin: 40px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 16.5px;
+    margin: 28px 0 10px;
+  }
+  p { margin: 12px 0; }
+  ul, ol { padding-left: 22px; margin: 12px 0; }
+  li { margin: 6px 0; }
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.15s;
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--bg-code);
+    color: #e6e6f0;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 14px 0;
+  }
+  pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+    background: var(--bg);
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: var(--bg-soft);
+    font-weight: 600;
+    color: var(--fg);
+    font-size: 13px;
+  }
+  tbody tr:hover { background: var(--accent-soft); }
+  .badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  .badge.gray { background: #e8e8ee; color: #5a5a6a; }
+  .badge.green { background: #d4f5e9; color: #00875f; }
+  .badge.yellow { background: #fff3d6; color: #a06800; }
+  .badge.red { background: #fde0db; color: #b03828; }
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 36px 0;
+  }
+  #toTop {
+    position: fixed;
+    right: 28px;
+    bottom: 28px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(108,92,231,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    font-size: 18px;
+  }
+  #toTop.show { opacity: 1; pointer-events: auto; }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; padding: 16px; gap: 16px; }
+    nav.toc { position: static; max-height: none; }
+    main { padding: 24px 20px 40px; }
+    header.top { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>DSH Figma MCP <span lang="zh">用户手册</span><span lang="en">User Guide</span></h1>
+  <div class="lang-switch" id="langToggle">
+    <span class="lang-opt" data-lang="zh">中</span><span class="lang-sep">|</span><span class="lang-opt" data-lang="en">EN</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc">
+    <div class="toc-title"><span lang="zh">目录</span><span lang="en">Contents</span></div>
+    <ol>
+      <li><a href="#快速开始"><span lang="zh">快速开始</span><span lang="en">Quick Start</span></a></li>
+      <li><a href="#设置卡片"><span lang="zh">设置卡片</span><span lang="en">Settings Card</span></a></li>
+      <li><a href="#自然语言"><span lang="zh">自然语言</span><span lang="en">Natural Language</span></a></li>
+      <li><a href="#工作流指令"><span lang="zh">工作流指令</span><span lang="en">Workflow Commands</span></a></li>
+      <li><a href="#支持的-figma-链接类型"><span lang="zh">支持的 Figma 链接类型</span><span lang="en">Supported Figma Links</span></a></li>
+      <li><a href="#授权数据与安全"><span lang="zh">授权、数据与安全</span><span lang="en">Auth, Data &amp; Security</span></a></li>
+      <li><a href="#常见问题"><span lang="zh">常见问题</span><span lang="en">FAQ</span></a></li>
+      <li><a href="#术语表"><span lang="zh">术语表</span><span lang="en">Glossary</span></a></li>
+      <li><a href="#支持与反馈"><span lang="zh">支持与反馈</span><span lang="en">Support &amp; Feedback</span></a></li>
+      <li><a href="#相关文档"><span lang="zh">相关文档</span><span lang="en">Related Docs</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <h1>DSH Figma MCP <span lang="zh">用户手册</span><span lang="en">User Guide</span></h1>
+    <p class="lead">
+      <span lang="zh">本手册内容涵盖连接授权流程、对话中的使用方式、内置工作流的用途，以及常见问题的排查方法。</span>
+      <span lang="en">This guide covers the authorization flow, usage in conversation, built-in workflows, and troubleshooting.</span>
+    </p>
+
+    <h2 id="快速开始"><span lang="zh">1. 快速开始</span><span lang="en">1. Quick Start</span></h2>
+    <p><strong><span lang="zh">前提条件</span><span lang="en">Prerequisites</span></strong></p>
+    <ul>
+      <li><span lang="zh">已安装 DSH（安装方法见 </span><span lang="en">DSH installed (see </span><a href="https://github.com/lubanqihao9875/dsh-figma-mcp/blob/main/README.md"><span lang="zh">README</span></a><a href="https://github.com/lubanqihao9875/dsh-figma-mcp/blob/main/README.en.md"><span lang="en">README</span></a><span lang="zh">）；</span><span lang="en">);</span></li>
+      <li><span lang="zh">拥有 Figma 账号，且当前设备的浏览器可正常访问 figma.com；</span><span lang="en">A Figma account, and a browser on this device that can access figma.com;</span></li>
+      <li><span lang="zh">对目标 Figma 文件具备相应权限：读取内容需查看权限，写操作需编辑权限。</span><span lang="en">Proper permissions on the target Figma file: view access to read content, edit access to write.</span></li>
+    </ul>
+    <p><strong><span lang="zh">步骤</span><span lang="en">Steps</span></strong></p>
+    <ol>
+      <li><span lang="zh">安装插件后重启 DSH。</span><span lang="en">Restart DSH after installing the plugin.</span></li>
+      <li><span lang="zh">打开「设置 → DSH Figma MCP」，点击「连接 Figma」，在弹出的浏览器页面中登录并同意授权。</span><span lang="en">Open "Settings → DSH Figma MCP", click "Connect Figma", and approve the OAuth flow in the popup browser page.</span></li>
+      <li><span lang="zh">浏览器提示授权成功后返回 DSH，卡片将在数秒内自动切换为「已连接」，无需手动刷新。</span><span lang="en">After the browser shows success, return to DSH. The card auto-switches to "Connected" within seconds — no manual refresh needed.</span></li>
+    </ol>
+    <p><span lang="zh">连接成功后，可在对话中通过以下两种方式使用：</span><span lang="en">Once connected, you can use the plugin in two ways:</span></p>
+    <ul>
+      <li><strong><span lang="zh">自然语言</span><span lang="en">Natural language</span></strong><span lang="zh">：在对话框中粘贴 Figma 链接并描述任务意图；</span><span lang="en">: paste a Figma link in the chat box and describe your intent.</span></li>
+      <li><strong><span lang="zh">工作流指令</span><span lang="en">Workflow command</span></strong><span lang="zh">：输入 </span><span lang="en">: type </span><code>/dsh-figma-mcp &lt;command&gt;</code> <span lang="zh">开启工作流。</span><span lang="en">to start a workflow.</span></li>
+    </ul>
+
+    <h2 id="设置卡片"><span lang="zh">2. 设置卡片</span><span lang="en">2. Settings Card</span></h2>
+    <p><span lang="zh">卡片位于「设置 → DSH Figma MCP」，分「连接」和「Skill」。</span><span lang="en">Located at "Settings → DSH Figma MCP", the card has "Connection" and "Skill" sections.</span></p>
+
+    <h3 id="授权状态"><span lang="zh">2.1 授权状态</span><span lang="en">2.1 Authorization Status</span></h3>
+    <table>
+      <thead><tr>
+        <th><span lang="zh">状态</span><span lang="en">Status</span></th>
+        <th><span lang="zh">含义</span><span lang="en">Meaning</span></th>
+        <th><span lang="zh">建议操作</span><span lang="en">Suggested Action</span></th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge gray"><span lang="zh">未连接</span><span lang="en">Disconnected</span></span></td>
+          <td><span lang="zh">尚无本地令牌</span><span lang="en">No local token</span></td>
+          <td><span lang="zh">点击「连接 Figma」，通过浏览器完成授权</span><span lang="en">Click "Connect Figma" and complete OAuth in the browser.</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge green"><span lang="zh">已连接</span><span lang="en">Connected</span></span></td>
+          <td><span lang="zh">令牌有效</span><span lang="en">Token is valid</span></td>
+          <td><span lang="zh">无需操作，直接使用</span><span lang="en">Ready to use.</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge yellow"><span lang="zh">即将过期</span><span lang="en">Expiring</span></span></td>
+          <td><span lang="zh">剩余有效期不足 24 小时</span><span lang="en">Less than 24h until expiry</span></td>
+          <td><span lang="zh">建议点击「刷新授权」续期</span><span lang="en">Click "Refresh" to renew.</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge red"><span lang="zh">已过期</span><span lang="en">Expired</span></span></td>
+          <td><span lang="zh">令牌已失效</span><span lang="en">Token is invalid</span></td>
+          <td><span lang="zh">点击「重新授权」，重新完成浏览器授权流程</span><span lang="en">Click "Re-authorize" and redo the OAuth flow.</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 id="连接操作按钮"><span lang="zh">2.2 连接操作按钮</span><span lang="en">2.2 Connection Buttons</span></h3>
+    <table>
+      <thead><tr>
+        <th><span lang="zh">按钮</span><span lang="en">Button</span></th>
+        <th><span lang="zh">行为</span><span lang="en">Behavior</span></th>
+        <th><span lang="zh">适用场景</span><span lang="en">Use Case</span></th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><span lang="zh">连接 Figma / 重新授权</span><span lang="en">Connect Figma / Re-authorize</span></td>
+          <td><span lang="zh">打开浏览器，完成 OAuth 流程</span><span lang="en">Opens the browser to complete OAuth.</span></td>
+          <td><span lang="zh">首次连接；令牌已过期；刷新失败</span><span lang="en">First connection; token expired; refresh failed.</span></td>
+        </tr>
+        <tr>
+          <td><span lang="zh">刷新授权</span><span lang="en">Refresh</span></td>
+          <td><span lang="zh">后台静默续期，不打开浏览器</span><span lang="en">Silently renews in the background without opening the browser.</span></td>
+          <td><span lang="zh">状态为黄色「即将过期」时；续期后卡片提示「Token 已更新」</span><span lang="en">When status is yellow "Expiring"; card shows "Token updated" after refresh.</span></td>
+        </tr>
+        <tr>
+          <td><span lang="zh">断开</span><span lang="en">Disconnect</span></td>
+          <td><span lang="zh">经二次确认后删除本机令牌与刷新凭据</span><span lang="en">After confirmation, deletes the local token and refresh credential.</span></td>
+          <td><span lang="zh">停用、更换账号或卸载插件之前</span><span lang="en">Before disabling, switching accounts, or uninstalling.</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 id="skill-开关"><span lang="zh">2.3 Skill 开关</span><span lang="en">2.3 Skill Toggle</span></h3>
+    <ul>
+      <li><span lang="zh">默认开启：插件将 </span><span lang="en">On by default: the plugin injects </span><code>dsh-figma-mcp-skill</code> <span lang="zh">注入 Agent 技能列表，Agent 据此选择应调用的 Figma 工具和解析链接。</span><span lang="en">into the Agent's skill list so the Agent can pick proper Figma tools and parse links.</span></li>
+      <li><span lang="zh">关闭后：连接功能不受影响，但 Agent 不再获得上述引导，建议保持开启。</span><span lang="en">Off: connection still works, but the Agent no longer receives the guidance — keep it on.</span></li>
+    </ul>
+
+    <h2 id="自然语言"><span lang="zh">3. 自然语言</span><span lang="en">3. Natural Language</span></h2>
+    <p><span lang="zh">连接后在对话中粘贴 Figma 链接并说明意图即可，例如：</span><span lang="en">After connecting, paste a Figma link in chat and describe your intent. For example:</span></p>
+    <ul>
+      <li><span lang="zh">「帮我看看这个设计稿里有什么：</span><span lang="en">"Take a look at this design: </span><code>https://www.figma.com/design/&lt;file-id&gt;/...?node-id=1-2</code><span lang="zh">」</span><span lang="en">"</span></li>
+      <li><span lang="zh">「把上面这个页面转成 React 代码」</span><span lang="en">"Convert the page above into React code."</span></li>
+      <li><span lang="zh">「从这个文件里抽出所有按钮和标题文案，做成中英文 i18n 对照表」</span><span lang="en">"Extract all button and heading copy from this file into a CN/EN i18n table."</span></li>
+    </ul>
+
+    <h2 id="工作流指令"><span lang="zh">4. 工作流指令</span><span lang="en">4. Workflow Commands</span></h2>
+    <h3 id="语法"><span lang="zh">4.1 语法</span><span lang="en">4.1 Syntax</span></h3>
+    <pre><code>/dsh-figma-mcp &lt;command&gt; [extra notes]</code></pre>
+    <ul>
+      <li><code>&lt;command&gt;</code> <span lang="zh">为下表中的 17 个之一。</span><span lang="en">is one of the 17 listed below.</span></li>
+      <li><code>[extra notes]</code> <span lang="zh">为可选项，提供后将作为初始说明自动填充。</span><span lang="en">is optional and auto-fills the initial intent.</span></li>
+    </ul>
+    <p><span lang="zh">示例：</span><span lang="en">Examples:</span></p>
+    <pre><code><span lang="zh">/dsh-figma-mcp look https://www.figma.com/design/xxxx/Shop?node-id=1-2
+/dsh-figma-mcp edit 把主按钮改成品牌蓝，复用已有颜色变量
+/dsh-figma-mcp asset 保存到 ./figma-assets，倍率用节点自带设置</span><span lang="en">/dsh-figma-mcp look https://www.figma.com/design/xxxx/Shop?node-id=1-2
+/dsh-figma-mcp edit change the primary button to brand blue, reuse existing color variables
+/dsh-figma-mcp asset save to ./figma-assets, use node's built-in export settings</span></code></pre>
+
+    <h3 id="工作流速查表"><span lang="zh">4.2 工作流速查表</span><span lang="en">4.2 Workflow Cheat Sheet</span></h3>
+    <table>
+      <thead><tr>
+        <th><span lang="zh">指令</span><span lang="en">Command</span></th>
+        <th><span lang="zh">用途</span><span lang="en">Purpose</span></th>
+      </tr></thead>
+      <tbody>
+        <tr><td><code>look</code></td><td><span lang="zh">查看节点的尺寸、布局、样式、组件与变量绑定</span><span lang="en">Inspect a node's size, layout, styles, component &amp; variable bindings</span></td></tr>
+        <tr><td><code>diff</code></td><td><span lang="zh">比较两个版本/对象之间的变更集与影响范围</span><span lang="en">Compare the change set and impact between two versions/objects</span></td></tr>
+        <tr><td><code>trace</code></td><td><span lang="zh">查询组件/变量/样式的引用与依赖关系</span><span lang="en">Trace references and dependencies of components/variables/styles</span></td></tr>
+        <tr><td><code>audit</code></td><td><span lang="zh">按规则集检查设计质量，输出可定位的问题清单</span><span lang="en">Audit design quality against a rule set and output locatable issues</span></td></tr>
+        <tr><td><code>code</code></td><td><span lang="zh">生成可集成进项目的前端代码</span><span lang="en">Generate frontend code ready to integrate</span></td></tr>
+        <tr><td><code>asset</code></td><td><span lang="zh">按节点导出设置下载切图到本地</span><span lang="en">Download assets to local per node export settings</span></td></tr>
+        <tr><td><code>token</code></td><td><span lang="zh">导出颜色/字号/间距等设计变量</span><span lang="en">Export design tokens (color/size/spacing)</span></td></tr>
+        <tr><td><code>copy</code></td><td><span lang="zh">提取文案，产出多语言对照表</span><span lang="en">Extract copy into a multilingual comparison table</span></td></tr>
+        <tr><td><code>map</code></td><td><span lang="zh">建立设计与代码（组件/变量/文案）的映射表</span><span lang="en">Build a mapping between design and code (components/variables/copy)</span></td></tr>
+        <tr><td><code>pull</code></td><td><span lang="zh">将已确认的设计变更落地为代码改动</span><span lang="en">Land confirmed design changes into code edits</span></td></tr>
+        <tr><td><code>push</code></td><td><span lang="zh">将网页（localhost 或外网 URL）推送至 Figma</span><span lang="en">Push a web page (localhost or public URL) into Figma</span></td></tr>
+        <tr><td><code>edit</code></td><td><span lang="zh">按自然语言意图对设计稿做最小修改</span><span lang="en">Make minimal edits to the design per natural-language intent</span></td></tr>
+        <tr><td><code>fix</code></td><td><span lang="zh">按检查结果逐条修复设计问题</span><span lang="en">Fix design issues one by one per audit results</span></td></tr>
+        <tr><td><code>migrate</code></td><td><span lang="zh">批量替换组件/变量/品牌，含影响分析与回滚方案</span><span lang="en">Batch-replace components/variables/brand with impact analysis &amp; rollback</span></td></tr>
+        <tr><td><code>ship</code></td><td><span lang="zh">打包版本化交付包（规格/切图清单/token/文案）</span><span lang="en">Package a versioned delivery bundle (spec/asset list/tokens/copy)</span></td></tr>
+        <tr><td><code>draw</code></td><td><span lang="zh">将 Mermaid 源码绘制到 FigJam 白板</span><span lang="en">Render Mermaid source onto a FigJam board</span></td></tr>
+        <tr><td><code>note</code></td><td><span lang="zh">在画布上添加批注、标注与测量线</span><span lang="en">Add annotations, callouts, and measurement lines on canvas</span></td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="支持的-figma-链接类型"><span lang="zh">5. 支持的 Figma 链接类型</span><span lang="en">5. Supported Figma Link Types</span></h2>
+    <p><span lang="zh">直接从浏览器地址栏复制完整链接即可；URL 中的 </span><span lang="en">Copy the full URL from the browser address bar. The </span><code>node-id=1-2</code> <span lang="zh">与 API 使用的 </span><span lang="en">format vs the API's </span><code>1:2</code> <span lang="zh">格式差异由 Agent 自动转换，无需手动处理。</span><span lang="en">format is auto-converted by the Agent — no manual handling.</span></p>
+    <table>
+      <thead><tr>
+        <th><span lang="zh">链接形态</span><span lang="en">Link Pattern</span></th>
+        <th><span lang="zh">适用场景</span><span lang="en">Use Case</span></th>
+      </tr></thead>
+      <tbody>
+        <tr><td><code>figma.com/design/&lt;key&gt;/...</code> <span lang="zh">（标准设计文件）</span><span lang="en">(standard design file)</span></td><td><span lang="zh">读取、改稿、切图、变量、代码</span><span lang="en">Read, edit, assets, variables, code</span></td></tr>
+        <tr><td><code>figma.com/board/&lt;key&gt;/...</code> <span lang="zh">（FigJam 白板）</span><span lang="en">(FigJam board)</span></td><td><span lang="zh">画流程图（</span><span lang="en">Diagram (</span><code>draw</code><span lang="zh">）、截图、资产上传</span><span lang="en">), screenshots, asset upload</span></td></tr>
+        <tr><td><code>figma.com/slides/&lt;key&gt;/...</code> <span lang="zh">（Slides）</span><span lang="en">(Slides)</span></td><td><span lang="zh">截图、切图、写入</span><span lang="en">Screenshots, assets, writes</span></td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="授权数据与安全"><span lang="zh">6. 授权、数据与安全</span><span lang="en">6. Authorization, Data &amp; Security</span></h2>
+    <ul>
+      <li><span lang="zh">OAuth 由 Figma 官方页面在浏览器中完成，无需手动粘贴令牌，超时后需重新点击「连接 Figma」。</span><span lang="en">OAuth is performed by Figma's official page in the browser — no manual token paste. On timeout, click "Connect Figma" again.</span></li>
+      <li><span lang="zh">令牌与刷新凭据保存在本机 DSH 配置目录中：</span><span lang="en">Tokens and refresh credentials are stored locally in the DSH config dir:</span>
+        <ul>
+          <li><span lang="zh">连接数据：</span><span lang="en">Connection data: </span><code>&lt;DSH_HOME&gt;/cordis.patch.yml</code><span lang="zh">（默认 </span><span lang="en">(default </span><code>~/.dsh/</code><span lang="zh">，可通过环境变量 </span><span lang="en">, overridable via </span><code>DSH_HOME</code><span lang="zh"> 覆盖）；</span><span lang="en">);</span></li>
+          <li><span lang="zh">插件配置（Skill 开关）：</span><span lang="en">Plugin config (Skill toggle): </span><code>&lt;DSH_HOME&gt;/figma-mcp/config.json</code><span lang="zh">。</span><span lang="en">.</span></li>
+        </ul>
+      </li>
+      <li><span lang="zh">令牌不会出现在对话内容、生成的文件或 README 中。</span><span lang="en">Tokens never appear in chat, generated files, or the README.</span></li>
+    </ul>
+
+    <h2 id="常见问题"><span lang="zh">7. 常见问题</span><span lang="en">7. FAQ</span></h2>
+    <p><strong><span lang="zh">点击「连接 Figma」后浏览器未弹出？</span><span lang="en">Browser doesn't pop up after clicking "Connect Figma"?</span></strong><br>
+    <span lang="zh">检查浏览器是否被弹窗拦截器拦截；允许弹窗后重新点击。</span>
+    <span lang="en">Check whether the popup was blocked by the browser; allow popups and try again.</span></p>
+    <p><strong><span lang="zh">浏览器已提示授权成功，卡片状态未更新？</span><span lang="en">Browser shows success but the card status doesn't update?</span></strong><br>
+    <span lang="zh">卡片每 1.5 秒自动查询一次状态，通常数秒内完成切换。若超过 15 秒仍为「未连接」，请确认浏览器回调页显示的是成功提示，然后重新打开设置页；若仍失败，重新发起一次连接。</span>
+    <span lang="en">The card polls every 1.5s and usually switches within seconds. If it's still "Disconnected" after 15s, confirm the callback page shows success, then reopen settings; if still failing, retry the connection.</span></p>
+    <p><strong><span lang="zh">状态长时间停留在「加载中」？</span><span lang="en">Stuck on "Loading" for a long time?</span></strong><br>
+    <span lang="zh">说明设置页未能获取后端状态。关闭设置页后重新打开；无效则重启 DSH。</span>
+    <span lang="en">The settings page failed to fetch backend status. Close and reopen the settings; otherwise restart DSH.</span></p>
+    <p><strong><span lang="zh">「刷新授权」报错？</span><span lang="en">"Refresh" errors?</span></strong><br>
+    <span lang="zh">通常是刷新凭据也已失效，请直接点击「重新授权」，重新完成浏览器授权流程。</span>
+    <span lang="en">Usually the refresh credential has also expired. Click "Re-authorize" and redo the browser OAuth flow.</span></p>
+
+    <h2 id="术语表"><span lang="zh">8. 术语表</span><span lang="en">8. Glossary</span></h2>
+    <table>
+      <thead><tr>
+        <th><span lang="zh">术语</span><span lang="en">Term</span></th>
+        <th><span lang="zh">含义</span><span lang="en">Meaning</span></th>
+      </tr></thead>
+      <tbody>
+        <tr><td>DSH</td><td><span lang="zh">DeepSeek Harness，本插件所服务的宿主环境</span><span lang="en">DeepSeek Harness, the host environment this plugin serves</span></td></tr>
+        <tr><td>MCP</td><td><span lang="zh">Model Context Protocol，Agent 调用外部工具的协议；Figma MCP 即 Figma 官方提供的工具集</span><span lang="en">Model Context Protocol, the protocol Agents use to call external tools; Figma MCP is Figma's official tool set</span></td></tr>
+        <tr><td>OAuth</td><td><span lang="zh">开放授权协议，在浏览器中完成授权，无需向插件提供账号密码</span><span lang="en">Open authorization protocol; completes in the browser without exposing credentials to the plugin</span></td></tr>
+        <tr><td><span lang="zh">令牌</span><span lang="en">Token</span></td><td><span lang="zh">授权完成后 Figma 下发的访问凭据，保存在本机，用于后续所有工具调用</span><span lang="en">Access credential issued by Figma after authorization, stored locally and used for subsequent tool calls</span></td></tr>
+        <tr><td><span lang="zh">刷新凭据</span><span lang="en">Refresh credential</span></td><td><span lang="zh">用于在令牌过期前静默换取新令牌的长期凭据</span><span lang="en">Long-term credential used to silently mint a new token before expiry</span></td></tr>
+        <tr><td><span lang="zh">节点</span><span lang="en">Node</span></td><td><span lang="zh">Figma 文件中的基本对象；</span><span lang="en">Basic object in a Figma file; </span><code>node-id</code> <span lang="zh">是节点的唯一标识</span><span lang="en">is its unique identifier</span></td></tr>
+        <tr><td>FigJam</td><td><span lang="zh">Figma 旗下的在线白板产品，对应 </span><span lang="en">Figma's online whiteboard, corresponding to </span><code>figma.com/board</code> <span lang="zh">链接</span><span lang="en">links</span></td></tr>
+        <tr><td><span lang="zh">分支</span><span lang="en">Branch</span></td><td><span lang="zh">从主文件派生的平行编辑版本，对应链接中的 </span><span lang="en">Parallel edit version derived from the main file, matching </span><code>branch/&lt;branchKey&gt;</code></td></tr>
+        <tr><td><span lang="zh">patch 文件</span><span lang="en">Patch file</span></td><td><span lang="zh">DSH 的配置文件 </span><span lang="en">DSH's config file </span><code>cordis.patch.yml</code><span lang="zh">，本插件的连接数据写入其中</span><span lang="en">, where this plugin stores connection data</span></td></tr>
+        <tr><td>Skill</td><td><span lang="zh">注入 Agent 技能列表的使用指南；本插件的 Skill 指导 Agent 选用 Figma 工具</span><span lang="en">Guide injected into the Agent's skill list; this plugin's Skill tells the Agent which Figma tools to use</span></td></tr>
+        <tr><td><span lang="zh">工作流</span><span lang="en">Workflow</span></td><td><span lang="zh"></span><span lang="en"></span><code>/dsh-figma-mcp</code> <span lang="zh">内置的固定流程</span><span lang="en">built-in fixed flow</span></td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="支持与反馈"><span lang="zh">9. 支持与反馈</span><span lang="en">9. Support &amp; Feedback</span></h2>
+    <ul>
+      <li><span lang="zh">问题报告与功能建议：</span><span lang="en">Issue reports &amp; feature suggestions: </span><a href="https://github.com/lubanqihao9875/dsh-figma-mcp/issues">GitHub Issues</a><span lang="zh">。提交时附插件版本、DSH 版本、复现步骤与预期结果。</span><span lang="en">. Include plugin version, DSH version, reproduction steps, and expected result.</span></li>
+    </ul>
+
+    <h2 id="相关文档"><span lang="zh">10. 相关文档</span><span lang="en">10. Related Docs</span></h2>
+    <ul>
+      <li><a href="https://github.com/lubanqihao9875/dsh-figma-mcp/blob/main/README.md"><span lang="zh">README</span></a><a href="https://github.com/lubanqihao9875/dsh-figma-mcp/blob/main/README.en.md"><span lang="en">README</span></a><span lang="zh">：项目简介与安装（npm / GitHub / 本地链接开发）</span><span lang="en">: project intro &amp; install (npm / GitHub / local link dev)</span></li>
+      <li><a href="https://github.com/lubanqihao9875/dsh-figma-mcp/blob/main/CHANGELOG.md">CHANGELOG</a><span lang="zh">：各版本变更记录</span><span lang="en">: per-version change log</span></li>
+      <li><span lang="zh">内置 Skill 文档（随插件分发，面向 Agent）：</span><span lang="en">Built-in Skill doc (shipped with the plugin, for the Agent): </span><code>skills/dsh-figma-mcp-skill/SKILL.md</code>
+        <ul>
+          <li><span lang="zh">链接解析与文件类型支持矩阵：</span><span lang="en">Link parsing &amp; file type matrix: </span><code>references/flow-ids.md</code></li>
+          <li><span lang="zh">Figma MCP 工具速查：</span><span lang="en">Figma MCP tool cheat sheet: </span><code>references/tools.md</code></li>
+          <li><span lang="zh">写操作前的 token 状态判断：</span><span lang="en">Token state check before writes: </span><code>references/auth-state.md</code></li>
+        </ul>
+      </li>
+    </ul>
+  </main>
+</div>
+
+<button id="toTop" title="回到顶部 / Back to top">↑</button>
+<script>
+  const toggle = document.getElementById('langToggle');
+  const opts = toggle.querySelectorAll('.lang-opt');
+  function applyLang(lang) {
+    document.documentElement.lang = lang;
+    document.title = lang === 'en' ? 'DSH Figma MCP User Guide' : 'DSH Figma MCP 用户手册';
+    opts.forEach(o => o.classList.toggle('active', o.dataset.lang === lang));
+  }
+  let initLang = 'zh';
+  try {
+    const urlLang = new URLSearchParams(location.search).get('lang');
+    if (urlLang === 'en' || urlLang === 'zh') initLang = urlLang;
+  } catch (e) {}
+  applyLang(initLang);
+  toggle.addEventListener('click', (e) => {
+    const target = e.target.closest('.lang-opt');
+    if (target) { applyLang(target.dataset.lang); return; }
+    const cur = document.documentElement.lang;
+    applyLang(cur === 'zh' ? 'en' : 'zh');
+  });
+
+  const links = document.querySelectorAll('nav.toc a');
+  const sections = Array.from(links).map(a => {
+    const id = a.getAttribute('href').slice(1);
+    return document.getElementById(id);
+  });
+  function onScroll() {
+    const y = window.scrollY + 100;
+    let activeIdx = -1;
+    sections.forEach((s, i) => {
+      if (s && s.offsetTop <= y) activeIdx = i;
+    });
+    links.forEach((a, i) => a.classList.toggle('active', i === activeIdx));
+    document.getElementById('toTop').classList.toggle('show', window.scrollY > 400);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+  document.getElementById('toTop').addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+</body>
+</html>

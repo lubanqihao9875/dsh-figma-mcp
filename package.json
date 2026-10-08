@@ -1,6 +1,6 @@
 {
   "name": "dsh-figma-mcp",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "DSH 的 Figma MCP 一键连接插件，对话中粘贴链接，Agent 即可读写节点/图层/变量/样式，生成 React/Vue 代码，OAuth 安全登录，Token 本机存储，临近过期自动提醒，内置工作流指令和 Skill 引导使用",
   "keywords": [
     "dsh",
@@ -35,6 +35,7 @@
     "client.js",
     "cordis.patch.yml",
     "skills",
+    "assets",
     "README.md",
     "README.en.md",
     "CHANGELOG.md",

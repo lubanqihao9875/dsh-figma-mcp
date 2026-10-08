@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0
+
+- Added: DSH Figma MCP User Guide.
+
 ## 0.6.0
 
 - Added: dsh-figma-mcp built-in workflow commands.

@@ -15,6 +15,7 @@ window.__ModuleLoader__.load({
       'section.heading': 'DSH Figma MCP',
       'section.description': '授权一次可让 DSH 直接读写你的 Figma 设计文件、查询资源、读取样式。',
       'section.label': 'DSH Figma MCP',
+      'section.guide': '查看 DSH Figma MCP 用户手册',
       'connection.title': '连接',
       'skill.title': 'Skill',
       
@@ -55,6 +56,7 @@ window.__ModuleLoader__.load({
       'section.heading': 'DSH Figma MCP',
       'section.description': 'Authorize once so DSH can read and write your Figma files, query assets, and read styles.',
       'section.label': 'Figma',
+      'section.guide': 'View DSH Figma MCP User Guide',
       'connection.title': 'Connection',
       'skill.title': 'Skill',
       
@@ -143,8 +145,13 @@ window.__ModuleLoader__.load({
     const CSS = [
       // ===== page shell =====
       '.setPage{box-sizing:border-box;max-width:720px;margin:0 auto;padding:0}',
-      '.pageHeading{margin:0 0 6px;font-size:18px;line-height:26px;font-weight:600;color:var(--dsw-alias-label-primary)}',
+      '.pageHeading{margin:0;font-size:18px;line-height:26px;font-weight:600;color:var(--dsw-alias-label-primary)}',
+      '.pageHeadingRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}',
       '.pageIntro{margin:0 0 28px;max-width:66ch;font-size:14px;line-height:22px;color:var(--dsw-alias-label-secondary)}',
+      '.guideLink{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--dsw-alias-border-l1);font-size:11px;font-weight:600;line-height:1;color:var(--dsw-alias-label-secondary);text-decoration:none;cursor:pointer;position:relative;flex-shrink:0;transition:color .12s,border-color .12s}',
+      '.guideLink:hover{color:var(--dsw-alias-state-business-primary);border-color:var(--dsw-alias-state-business-primary)}',
+      '.guideLink::before{content:attr(data-tip);position:absolute;top:calc(100% + 6px);right:0;white-space:nowrap;padding:5px 9px;border-radius:4px;background:#1f1f1f;color:#fff;font-size:12px;font-weight:400;line-height:16px;opacity:0;pointer-events:none;transition:opacity .12s;z-index:10}',
+      '.guideLink:hover::before{opacity:1}',
 
       // ===== section card =====
       '.setSection{display:flex;flex-direction:column;gap:14px;padding:18px 20px 16px;margin:0 0 16px;border-radius:var(--dsw-radius-md);background:var(--dsw-alias-bg-layer-2);border:1px solid var(--dsw-alias-border-l1)}',
@@ -603,6 +610,8 @@ window.__ModuleLoader__.load({
         return locale.subscribe(() => setLocaleVersion((v) => v + 1))
       }, [])
 
+      const guideUrl = '/api/figma/guide' + (((document.documentElement.lang || '').startsWith('en')) ? '?lang=en' : '?lang=zh')
+
       const kind = classifyStatus(status)
 
       const stateLabel = (() => {
@@ -707,7 +716,18 @@ window.__ModuleLoader__.load({
       return jsxs(Fragment, {
         children: [
           jsxs('div', { className: 'setPage', 'data-locale-version': localeVersion, children: [
-            jsx('h2', { className: 'pageHeading', children: t('section.heading') }),
+            jsxs('div', { className: 'pageHeadingRow', children: [
+              jsx('h2', { className: 'pageHeading', children: t('section.heading') }),
+              jsx('a', {
+                href: guideUrl,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                className: 'guideLink',
+                'data-tip': t('section.guide'),
+                'aria-label': t('section.guide'),
+                children: '?',
+              }),
+            ] }),
             jsx('p', { className: 'pageIntro', children: t('section.description') }),
             errorBlock,
             connectionSection,
