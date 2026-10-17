@@ -1,0 +1,5 @@
+# dsh-figma-mcp bundle patch。
+- insert:
+    - id: figma-mcp
+      name: dsh-figma-mcp
+      config: {}

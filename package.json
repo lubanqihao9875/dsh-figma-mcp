@@ -1,0 +1,60 @@
+{
+  "name": "dsh-figma-mcp",
+  "version": "1.0.0",
+  "description": "DSH 的 Figma MCP 一键连接插件，对话中粘贴链接，Agent 即可读写节点/图层/变量/样式，生成 React/Vue 代码，OAuth 安全登录，Token 本机存储，内置工作流指令和 Skill 引导使用",
+  "keywords": [
+    "dsh",
+    "figma",
+    "mcp",
+    "dsh-plugin",
+    "oauth"
+  ],
+  "author": {
+    "name": "lubanqihao9875",
+    "url": "https://github.com/lubanqihao9875"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lubanqihao9875/dsh-figma-mcp.git"
+  },
+  "homepage": "https://github.com/lubanqihao9875/dsh-figma-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/lubanqihao9875/dsh-figma-mcp/issues"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client.js",
+    "cordis.patch.yml",
+    "skills",
+    "assets",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "verify": "node -e \"JSON.parse(require('fs').readFileSync('package.json','utf8'))\""
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  }
+}
